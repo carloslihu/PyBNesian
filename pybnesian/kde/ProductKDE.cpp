@@ -1,8 +1,6 @@
 #include <kde/ProductKDE.hpp>
 #include <arrow/python/helpers.h>
 
-namespace pyarrow = arrow::py;
-
 namespace kde {
 
 void ProductKDE::copy_bandwidth_opencl() {

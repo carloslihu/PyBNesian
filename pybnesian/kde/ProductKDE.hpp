@@ -1,11 +1,11 @@
 #ifndef PYBNESIAN_KDE_PRODUCTKDE_HPP
 #define PYBNESIAN_KDE_PRODUCTKDE_HPP
 
-#include <util/pickle.hpp>
 #include <kde/BandwidthSelector.hpp>
 #include <kde/NormalReferenceRule.hpp>
 #include <opencl/opencl_config.hpp>
 #include <util/math_constants.hpp>
+#include <util/pickle.hpp>
 
 using opencl::OpenCLConfig, opencl::OpenCL_kernel_traits;
 

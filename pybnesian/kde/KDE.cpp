@@ -8,8 +8,8 @@ void KDE::copy_bandwidth_opencl() {
     auto llt_cov = m_bandwidth.llt();
     auto llt_matrix = llt_cov.matrixLLT();
 
-    m_lognorm_const = -llt_matrix.diagonal().array().log().sum() -
-                      0.5 * m_variables.size() * std::log(2 * util::pi<double>) - std::log(N);
+    m_lognorm_const =
+        -llt_matrix.diagonal().array().log().sum() - 0.5 * d * std::log(2 * util::pi<double>) - std::log(N);
 
     auto& opencl = OpenCLConfig::get();
 
