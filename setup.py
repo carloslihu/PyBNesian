@@ -106,7 +106,7 @@ class Build_CMakeExternalLibrary(build_clib):
             )
 
             # Copy the libraries to self.build_clib
-            lib_folder = None
+            lib_folder = ""
             for name in os.listdir(install_directory):
                 # The lib folder can be "lib" or "lib64"
                 if "lib" in name:
@@ -174,6 +174,7 @@ ext_modules = [
             "pybnesian/kde/UCV.cpp",
             "pybnesian/factors/continuous/LinearGaussianCPD.cpp",
             "pybnesian/factors/continuous/CKDE.cpp",
+            "pybnesian/factors/continuous/CPKDE.cpp",
             "pybnesian/factors/discrete/DiscreteFactor.cpp",
             "pybnesian/factors/discrete/discrete_indices.cpp",
             "pybnesian/dataset/dataset.cpp",
