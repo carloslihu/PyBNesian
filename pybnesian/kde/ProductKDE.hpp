@@ -17,13 +17,19 @@ public:
         : m_variables(),
           m_fitted(),
           m_bselector(std::make_shared<NormalReferenceRule>()),
+          m_training(),
           N(0),
           m_training_type(arrow::float64()) {}
 
     ProductKDE(std::vector<std::string> variables) : ProductKDE(variables, std::make_shared<NormalReferenceRule>()) {}
 
     ProductKDE(std::vector<std::string> variables, std::shared_ptr<BandwidthSelector> b_selector)
-        : m_variables(variables), m_fitted(false), m_bselector(b_selector), N(0), m_training_type(arrow::float64()) {
+        : m_variables(variables),
+          m_fitted(false),
+          m_bselector(b_selector),
+          m_training(),
+          N(0),
+          m_training_type(arrow::float64()) {
         if (b_selector == nullptr) throw std::runtime_error("Bandwidth selector procedure must be non-null.");
 
         if (m_variables.empty()) {
@@ -46,6 +52,15 @@ public:
         m_bandwidth = new_bandwidth;
         if (m_bandwidth.rows() > 0) copy_bandwidth_opencl();
     }
+
+    // TODO: Check how to implement this which is a vector of cl::Buffer
+    cl::Buffer& training_buffer() { return m_training; }
+    const cl::Buffer& training_buffer() const { return m_training; }
+
+    // cl::Buffer& cholesky_buffer() { return m_H_cholesky; }
+    // const cl::Buffer& cholesky_buffer() const { return m_H_cholesky; }
+
+    // double lognorm_const() const { return m_lognorm_const; }
 
     DataFrame training_data() const;
 
@@ -123,14 +138,13 @@ DataFrame ProductKDE::_training_data() const {
     using VectorType = Matrix<CType, Dynamic, 1>;
     arrow::NumericBuilder<ArrowType> builder;
 
+    auto d = m_variables.size();
     auto& opencl = OpenCLConfig::get();
     VectorType tmp_buffer(N);
-
     std::vector<Array_ptr> columns;
     arrow::SchemaBuilder b(arrow::SchemaBuilder::ConflictPolicy::CONFLICT_ERROR);
-    for (size_t i = 0; i < m_variables.size(); ++i) {
+    for (size_t i = 0; i < d; ++i) {
         opencl.read_from_buffer(tmp_buffer.data(), m_training[i], N);
-
         auto status = builder.Resize(N);
         RAISE_STATUS_ERROR(builder.AppendValues(tmp_buffer.data(), N));
 
@@ -153,15 +167,15 @@ DataFrame ProductKDE::_training_data() const {
 template <typename ArrowType, bool contains_null>
 void ProductKDE::_fit(const DataFrame& df) {
     using CType = typename ArrowType::c_type;
+    auto d = m_variables.size();
+    N = df.valid_rows(m_variables);
 
-    if (static_cast<size_t>(m_bandwidth.rows()) != m_variables.size()) m_bandwidth = VectorXd(m_variables.size());
+    if (static_cast<size_t>(m_bandwidth.rows()) != d) m_bandwidth = VectorXd(d);
     m_cl_bandwidth.clear();
     m_training.clear();
 
     Buffer_ptr combined_bitmap;
     if constexpr (contains_null) combined_bitmap = df.combined_bitmap(m_variables);
-
-    N = df.valid_rows(m_variables);
 
     auto& opencl = OpenCLConfig::get();
 
@@ -173,7 +187,7 @@ void ProductKDE::_fit(const DataFrame& df) {
 
         // TODO: This doesn't work when the matrix has exactly the same value in all the elements
         // TODO if bandwidth is not positive definite, try to add a small value to the diagonal?
-        // m_bandwidth = m_bandwidth + VectorXd::Constant(m_variables.size(), 1e-6);
+        // m_bandwidth = m_bandwidth + VectorXd::Constant(d, 1e-6);
         // std::cout << "The bandwidth matrix is not positive definite. Adding a small value to the vector." <<
         // std::endl;
         throw e;
@@ -183,7 +197,7 @@ void ProductKDE::_fit(const DataFrame& df) {
     // - try to add a small value to the diagonal?
     // - Add to blacklist and ignore this iteration?
 
-    for (size_t i = 0; i < m_variables.size(); ++i) {
+    for (size_t i = 0; i < d; ++i) {
         if constexpr (std::is_same_v<CType, double>) {
             auto sqrt = std::sqrt(m_bandwidth(i));
             m_cl_bandwidth.push_back(opencl.copy_to_buffer(&sqrt, 1));
@@ -200,9 +214,11 @@ void ProductKDE::_fit(const DataFrame& df) {
             m_training.push_back(opencl.copy_to_buffer(column->data(), N));
         }
     }
-    // -1/2 * d * log(2 * pi) - 1/2 * log(|h|) - log(N)
-    m_lognorm_const = -0.5 * static_cast<double>(m_variables.size()) * std::log(2 * util::pi<double>) -
-                      0.5 * m_bandwidth.array().log().sum() - std::log(N);
+    // auto training_data = df.to_eigen<false, ArrowType, contains_null>(m_variables);
+    // m_training = opencl.copy_to_buffer(training_data->data(), N * d);
+    // - 1/2 * log(|h|) - 1/2 * d * log(2 * pi) - log(N)
+    m_lognorm_const = -0.5 * m_bandwidth.array().log().sum() -
+                      0.5 * static_cast<double>(d) * std::log(2 * util::pi<double>) - std::log(N);
 }
 
 template <typename ArrowType>
@@ -261,6 +277,7 @@ void ProductKDE::product_logl_mat(cl::Buffer& test_buffer,
     using CType = typename ArrowType::c_type;
 
     auto& opencl = OpenCLConfig::get();
+    // TODO: Think why this is different from KDE.hpp
     auto& k_logl_values_1d_mat = opencl.kernel(OpenCL_kernel_traits<ArrowType>::logl_values_1d_mat);
     k_logl_values_1d_mat.setArg(0, m_training[0]);
     k_logl_values_1d_mat.setArg(1, static_cast<unsigned int>(N));
