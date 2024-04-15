@@ -2,6 +2,13 @@
 [![Documentation Status](https://readthedocs.org/projects/pybnesian/badge/?version=latest)](https://pybnesian.readthedocs.io/en/latest/?badge=latest)
 ![PyPI](https://img.shields.io/pypi/v/pybnesian?color=blue)
 
+# Pybnesian's fork
+- This repository extends the functionality of the original library by adding new features and fixing some bugs.
+- It corrects the pytest tests.
+- It fixes the **Singular Covariance Data** error when learning a Bayesian network.
+- It Will implement the ProductKDE Bayesian network model.
+- Above all, this fork **adds comments and reformats** the code to make it more accessible to new users.
+
 # PyBNesian
 
 - `PyBNesian` is a Python package that implements Bayesian networks. Currently, it is mainly dedicated to learning Bayesian networks.

@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "PyBNesian"
-copyright = "2024, David Atienza, Enrique Valero-Leal and Carlos Li-Hu"
-author = "David Atienza, Enrique Valero-Leal and Carlos Li-Hu"
+copyright = "2024, David Atienza, Carlos Li-Hu and Enrique Valero-Leal"
+author = "David Atienza, Carlos Li-Hu and Enrique Valero-Leal"
 
 # The full version, including alpha/beta/rc tags
 version = "0.4.4"

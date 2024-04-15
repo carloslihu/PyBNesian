@@ -1,5 +1,5 @@
-# Installing PyBnesian (Enrique Valero-Leal and Carlos Li Hu)
-This is a more extensive guide on how to install PyBNesian on an Ubuntu computer and minimise error in the installation. If any error is detected throughout it, please contact [Enrique-Val](https://github.com/Enrique-Val) on GitHub and we will try to publish a new version addressing it.
+# Installing PyBnesian
+This is a more extensive guide on how to install PyBNesian on an Ubuntu computer and minimise error in the installation.
 
 
 ## Requirements of the Ubuntu computer for instaling PyBnesian
@@ -40,9 +40,9 @@ First of all, clone the PyBnesian repo into your computer running the command:
 
 	git clone https://github.com/davenza/PyBNesian
 	
-For the latest ongoing dev changes, you might consider alternatively cloning Enrique-Val's PyBnesian fork:
+For the latest ongoing dev changes, you might consider alternatively cloning this fork:
 
-	git clone https://github.com/Enrique-Val/PyBNesian
+	git clone https://github.com/carloslihu/PyBNesian.git
 	
 Enter into the newly created folder and run the installation file.
 	
@@ -68,4 +68,4 @@ Links that might be of help when dealing with PyBnesian installation.
 1. [https://www.sasview.org/docs/old_docs/4.1.2/user/opencl_installation.html](https://www.sasview.org/docs/old_docs/4.1.2/user/opencl_installation.html)
 
 ## Acknowledgements
-Thanks to David Atienza for developing PyBnesian in the first place. Also, Carlos Li assisted to find the commands for solving OpenCL headers related issues.
+Thanks to David Atienza for developing PyBnesian in the first place. Also, Carlos Li-Hu assisted to find the commands for solving OpenCL headers related issues.

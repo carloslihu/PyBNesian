@@ -18,7 +18,7 @@ v0.4.3
 - Fixed a bug in :class:`DiscreteFactor <pybnesian.DiscreteFactor>` and others hybrid factors, such as
   :class:`CLinearGaussianCPD <pybnesian.CLinearGaussianCPD>` and :class:`HCKDE <pybnesian.HCKDE>`, where categorical
   data would not be correctly validated. This could lead to erroneous results or undefined behavior (often leading to
-  segmentation fault). Thanks to Carlos Li for reporting this bug.
+  segmentation fault). Thanks to Carlos Li-Hu for reporting this bug.
 
 - Support for Python 3.10 and ``pyarrow>=9.0`` has been added. Support for Python 3.6 has been deprecated, as
   ``pyarrow`` no longer supports it. 
