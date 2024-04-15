@@ -1,5 +1,5 @@
-#ifndef PYBNESIAN_FACTORS_CONTINUOUS_CKDE_HPP
-#define PYBNESIAN_FACTORS_CONTINUOUS_CKDE_HPP
+#ifndef PYBNESIAN_FACTORS_CONTINUOUS_CPKDE_HPP
+#define PYBNESIAN_FACTORS_CONTINUOUS_CPKDE_HPP
 
 #include <random>
 #include <pybind11/stl.h>
@@ -9,7 +9,7 @@
 #include <factors/discrete/DiscreteAdaptator.hpp>
 #include <kde/BandwidthSelector.hpp>
 #include <kde/NormalReferenceRule.hpp>
-#include <kde/KDE.hpp>
+#include <kde/ProductKDE.hpp>
 #include <opencl/opencl_config.hpp>
 #include <util/math_constants.hpp>
 
@@ -18,23 +18,23 @@ namespace pyarrow = arrow::py;
 using dataset::DataFrame;
 using Eigen::VectorXd, Eigen::VectorXi;
 using factors::FactorType, factors::discrete::DiscreteAdaptator;
-using kde::KDE, kde::BandwidthSelector, kde::NormalReferenceRule, kde::UnivariateKDE, kde::MultivariateKDE;
+using kde::ProductKDE, kde::BandwidthSelector, kde::NormalReferenceRule;
 using opencl::OpenCLConfig, opencl::OpenCL_kernel_traits;
 
 namespace factors::continuous {
 
-class CKDEType : public FactorType {
+class CPKDEType : public FactorType {
 public:
-    CKDEType(const CKDEType&) = delete;
-    void operator=(const CKDEType&) = delete;
+    CPKDEType(const CPKDEType&) = delete;
+    void operator=(const CPKDEType&) = delete;
 
-    static std::shared_ptr<CKDEType> get() {
-        static std::shared_ptr<CKDEType> singleton = std::shared_ptr<CKDEType>(new CKDEType);
+    static std::shared_ptr<CPKDEType> get() {
+        static std::shared_ptr<CPKDEType> singleton = std::shared_ptr<CPKDEType>(new CPKDEType);
         return singleton;
     }
 
-    static CKDEType& get_ref() {
-        static CKDEType& ref = *CKDEType::get();
+    static CPKDEType& get_ref() {
+        static CPKDEType& ref = *CPKDEType::get();
         return ref;
     }
 
@@ -49,24 +49,24 @@ public:
                                        py::args = py::args{},
                                        py::kwargs = py::kwargs{}) const override;
 
-    std::string ToString() const override { return "CKDEFactor"; }
+    std::string ToString() const override { return "CPKDEFactor"; }
 
     py::tuple __getstate__() const override { return py::make_tuple(); }
 
-    static std::shared_ptr<CKDEType> __setstate__(py::tuple&) { return CKDEType::get(); }
+    static std::shared_ptr<CPKDEType> __setstate__(py::tuple&) { return CPKDEType::get(); }
 
 private:
-    CKDEType() { m_hash = reinterpret_cast<std::uintptr_t>(this); }
+    CPKDEType() { m_hash = reinterpret_cast<std::uintptr_t>(this); }
 };
 
-class CKDE : public Factor {
+class CPKDE : public Factor {
 public:
-    using FactorTypeClass = CKDEType;
+    using FactorTypeClass = CPKDEType;
 
-    CKDE() = default;
-    CKDE(std::string variable, std::vector<std::string> evidence)
-        : CKDE(variable, evidence, std::make_shared<NormalReferenceRule>()) {}
-    CKDE(std::string variable, std::vector<std::string> evidence, std::shared_ptr<BandwidthSelector> b_selector)
+    CPKDE() = default;
+    CPKDE(std::string variable, std::vector<std::string> evidence)
+        : CPKDE(variable, evidence, std::make_shared<NormalReferenceRule>()) {}
+    CPKDE(std::string variable, std::vector<std::string> evidence, std::shared_ptr<BandwidthSelector> b_selector)
         : Factor(variable, evidence),
           m_variables(),
           m_fitted(false),
@@ -82,15 +82,15 @@ public:
             m_variables.push_back(*it);
         }
 
-        m_joint = KDE(m_variables, b_selector);
+        m_joint = ProductKDE(m_variables, b_selector);
         if (!this->evidence().empty()) {
-            m_marg = KDE(this->evidence(), b_selector);
+            m_marg = ProductKDE(this->evidence(), b_selector);
         }
     }
 
-    std::shared_ptr<FactorType> type() const override { return CKDEType::get(); }
+    std::shared_ptr<FactorType> type() const override { return CPKDEType::get(); }
 
-    FactorType& type_ref() const override { return CKDEType::get_ref(); }
+    FactorType& type_ref() const override { return CPKDEType::get_ref(); }
 
     std::shared_ptr<arrow::DataType> data_type() const override {
         check_fitted();
@@ -102,11 +102,11 @@ public:
         return N;
     }
 
-    KDE& kde_joint() {
+    ProductKDE& kde_joint() {
         check_fitted();
         return m_joint;
     }
-    KDE& kde_marg() {
+    ProductKDE& kde_marg() {
         check_fitted();
         return m_marg;
     }
@@ -128,12 +128,12 @@ public:
     std::string ToString() const override;
 
     py::tuple __getstate__() const override;
-    static CKDE __setstate__(py::tuple& t);
-    static CKDE __setstate__(py::tuple&& t) { return __setstate__(t); }
+    static CPKDE __setstate__(py::tuple& t);
+    static CPKDE __setstate__(py::tuple&& t) { return __setstate__(t); }
 
 private:
     void check_fitted() const {
-        if (!fitted()) throw std::invalid_argument("CKDE factor not fitted.");
+        if (!fitted()) throw std::invalid_argument("CPKDE factor not fitted.");
     }
     template <typename ArrowType>
     void _fit(const DataFrame& df);
@@ -175,18 +175,18 @@ private:
     std::shared_ptr<BandwidthSelector> m_bselector;
     std::shared_ptr<arrow::DataType> m_training_type;
     size_t N;
-    KDE m_joint;
-    KDE m_marg;
+    ProductKDE m_joint;
+    ProductKDE m_marg;
 };
 
 /**
- * @brief Private function to learn the CKDE parameters given the data.
+ * @brief Private function to learn the CPKDE parameters given the data.
  *
  * @tparam ArrowType Arrow Data type.
  * @param df Data.
  */
 template <typename ArrowType>
-void CKDE::_fit(const DataFrame& df) {
+void CPKDE::_fit(const DataFrame& df) {
     m_joint.fit(df);
     N = m_joint.num_instances();
 
@@ -206,7 +206,7 @@ void CKDE::_fit(const DataFrame& df) {
 }
 
 template <typename ArrowType>
-VectorXd CKDE::_logl(const DataFrame& df) const {
+VectorXd CPKDE::_logl(const DataFrame& df) const {
     using CType = typename ArrowType::c_type;
     using VectorType = Matrix<CType, Dynamic, 1>;
 
@@ -260,7 +260,7 @@ VectorXd CKDE::_logl(const DataFrame& df) const {
 }
 
 template <typename ArrowType>
-double CKDE::_slogl(const DataFrame& df) const {
+double CPKDE::_slogl(const DataFrame& df) const {
     using CType = typename ArrowType::c_type;
 
     auto logl_joint = m_joint.logl_buffer<ArrowType>(df);
@@ -293,7 +293,7 @@ double CKDE::_slogl(const DataFrame& df) const {
 }
 
 template <typename ArrowType>
-Array_ptr CKDE::_sample(int n, const DataFrame& evidence_values, unsigned int seed) const {
+Array_ptr CPKDE::_sample(int n, const DataFrame& evidence_values, unsigned int seed) const {
     using CType = typename ArrowType::c_type;
     using VectorType = Matrix<CType, Dynamic, 1>;
 
@@ -303,7 +303,7 @@ Array_ptr CKDE::_sample(int n, const DataFrame& evidence_values, unsigned int se
         std::mt19937 rng{seed};
         std::uniform_int_distribution<> uniform(0, N - 1);
 
-        std::normal_distribution<CType> normal(0, std::sqrt(m_joint.bandwidth()(0, 0)));
+        std::normal_distribution<CType> normal(0, std::sqrt(m_joint.bandwidth()(0)));
         VectorType training_data(N);
         const auto& training_buffer = m_joint.training_buffer();
         auto& opencl = OpenCLConfig::get();
@@ -323,7 +323,7 @@ Array_ptr CKDE::_sample(int n, const DataFrame& evidence_values, unsigned int se
 }
 
 template <typename ArrowType>
-Array_ptr CKDE::_sample_multivariate(int n, const DataFrame& evidence_values, unsigned int seed) const {
+Array_ptr CPKDE::_sample_multivariate(int n, const DataFrame& evidence_values, unsigned int seed) const {
     using CType = typename ArrowType::c_type;
     using ArrowArrayType = typename arrow::TypeTraits<ArrowType>::ArrayType;
     using VectorType = Matrix<CType, Dynamic, 1>;
@@ -354,7 +354,7 @@ Array_ptr CKDE::_sample_multivariate(int n, const DataFrame& evidence_values, un
     // Solves and saves the result in inverseL
     matrixL.solveInPlace(inverseL);
     auto R = inverseL * bandwidth.bottomLeftCorner(d, 1);
-    auto cond_var = bandwidth(0, 0) - R.squaredNorm();
+    auto cond_var = bandwidth(0) - R.squaredNorm();
     auto transform = (R.transpose() * inverseL).transpose().template cast<CType>();
 
     MatrixType training_dataset(N, m_variables.size());
@@ -390,9 +390,9 @@ Array_ptr CKDE::_sample_multivariate(int n, const DataFrame& evidence_values, un
 }
 
 template <typename ArrowType>
-VectorXi CKDE::_sample_indices_multivariate(Matrix<typename ArrowType::c_type, Dynamic, 1>& random_prob,
-                                            const DataFrame& evidence_values,
-                                            int n) const {
+VectorXi CPKDE::_sample_indices_multivariate(Matrix<typename ArrowType::c_type, Dynamic, 1>& random_prob,
+                                             const DataFrame& evidence_values,
+                                             int n) const {
     using CType = typename ArrowType::c_type;
     using ArrowArray = typename arrow::TypeTraits<ArrowType>::ArrayType;
     using MatrixType = Matrix<CType, Dynamic, Dynamic>;
@@ -425,7 +425,7 @@ VectorXi CKDE::_sample_indices_multivariate(Matrix<typename ArrowType::c_type, D
 }
 
 template <typename ArrowType, typename KDEType>
-cl::Buffer CKDE::_sample_indices_from_weights(cl::Buffer& random_prob, cl::Buffer& test_buffer, int n) const {
+cl::Buffer CPKDE::_sample_indices_from_weights(cl::Buffer& random_prob, cl::Buffer& test_buffer, int n) const {
     using CType = typename ArrowType::c_type;
 
     auto& opencl = OpenCLConfig::get();
@@ -513,7 +513,7 @@ cl::Buffer CKDE::_sample_indices_from_weights(cl::Buffer& random_prob, cl::Buffe
 }
 
 template <typename ArrowType>
-VectorXd CKDE::_cdf(const DataFrame& df) const {
+VectorXd CPKDE::_cdf(const DataFrame& df) const {
     using CType = typename ArrowType::c_type;
     using VectorType = Matrix<CType, Dynamic, 1>;
     auto& opencl = OpenCLConfig::get();
@@ -564,7 +564,7 @@ VectorXd CKDE::_cdf(const DataFrame& df) const {
 }
 
 template <typename ArrowType>
-cl::Buffer CKDE::_cdf_univariate(cl::Buffer& test_buffer, int m) const {
+cl::Buffer CPKDE::_cdf_univariate(cl::Buffer& test_buffer, int m) const {
     using CType = typename ArrowType::c_type;
     auto& opencl = OpenCLConfig::get();
     auto res = opencl.new_buffer<CType>(m);
@@ -576,7 +576,7 @@ cl::Buffer CKDE::_cdf_univariate(cl::Buffer& test_buffer, int m) const {
     k_cdf.setArg(0, m_joint.training_buffer());
     k_cdf.setArg(1, static_cast<unsigned int>(N));
     k_cdf.setArg(2, test_buffer);
-    k_cdf.setArg(4, static_cast<CType>(1.0 / std::sqrt(m_joint.bandwidth()(0, 0))));
+    k_cdf.setArg(4, static_cast<CType>(1.0 / std::sqrt(m_joint.bandwidth()(0))));
     k_cdf.setArg(5, static_cast<CType>(1.0 / N));
     k_cdf.setArg(6, mu);
 
@@ -599,7 +599,7 @@ cl::Buffer CKDE::_cdf_univariate(cl::Buffer& test_buffer, int m) const {
 }
 
 template <typename ArrowType, typename KDEType>
-cl::Buffer CKDE::_cdf_multivariate(cl::Buffer& variable_test_buffer, cl::Buffer& evidence_test_buffer, int m) const {
+cl::Buffer CPKDE::_cdf_multivariate(cl::Buffer& variable_test_buffer, cl::Buffer& evidence_test_buffer, int m) const {
     using CType = typename ArrowType::c_type;
 
     const auto& bandwidth = m_joint.bandwidth();
@@ -614,7 +614,7 @@ cl::Buffer CKDE::_cdf_multivariate(cl::Buffer& variable_test_buffer, cl::Buffer&
     // Solves and saves the result in inverseL
     matrixL.solveInPlace(inverseL);
     auto R = inverseL * bandwidth.bottomLeftCorner(d, 1);
-    auto cond_var = bandwidth(0, 0) - R.squaredNorm();
+    auto cond_var = bandwidth(0) - R.squaredNorm();
     auto transform = (R.transpose() * inverseL).template cast<CType>().eval();
 
     auto& opencl = OpenCLConfig::get();
@@ -741,7 +741,7 @@ cl::Buffer CKDE::_cdf_multivariate(cl::Buffer& variable_test_buffer, cl::Buffer&
 }
 
 template <typename ArrowType>
-py::tuple CKDE::__getstate__() const {
+py::tuple CPKDE::__getstate__() const {
     py::tuple joint_tuple;
     if (m_fitted) {
         joint_tuple = m_joint.__getstate__();
@@ -751,11 +751,11 @@ py::tuple CKDE::__getstate__() const {
 }
 
 // Fix const name: https://stackoverflow.com/a/15862594
-struct HCKDEName {
-    inline constexpr static auto* str = "HCKDE";
+struct HCPKDEName {
+    inline constexpr static auto* str = "HCPKDE";
 };
 
-struct CKDEFitter {
+struct CPKDEFitter {
     static bool fit(const std::shared_ptr<Factor>& factor, const DataFrame& df) {
         try {
             factor->fit(df);
@@ -773,8 +773,8 @@ struct CKDEFitter {
     }
 };
 
-using HCKDE = DiscreteAdaptator<CKDE, CKDEFitter, HCKDEName>;
+using HCPKDE = DiscreteAdaptator<CPKDE, CPKDEFitter, HCPKDEName>;
 
 }  // namespace factors::continuous
 
-#endif  // PYBNESIAN_FACTORS_CONTINUOUS_CKDE_HPP
+#endif  // PYBNESIAN_FACTORS_CONTINUOUS_CPKDE_HPP

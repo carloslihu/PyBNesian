@@ -1,4 +1,4 @@
-#include <factors/continuous/CKDE.hpp>
+#include <factors/continuous/CPKDE.hpp>
 #include <factors/continuous/LinearGaussianCPD.hpp>
 #include <factors/discrete/DiscreteFactor.hpp>
 #include <models/BayesianNetwork.hpp>
@@ -12,40 +12,40 @@ using opencl::OpenCLConfig;
 
 namespace factors::continuous {
 
-std::shared_ptr<Factor> CKDEType::new_factor(const BayesianNetworkBase& m,
-                                             const std::string& variable,
-                                             const std::vector<std::string>& evidence,
-                                             py::args args,
-                                             py::kwargs kwargs) const {
+std::shared_ptr<Factor> CPKDEType::new_factor(const BayesianNetworkBase& m,
+                                              const std::string& variable,
+                                              const std::vector<std::string>& evidence,
+                                              py::args args,
+                                              py::kwargs kwargs) const {
     for (const auto& e : evidence) {
         if (m.node_type(e) == DiscreteFactorType::get()) {
-            return generic_new_factor<HCKDE>(variable, evidence, args, kwargs);
+            return generic_new_factor<HCPKDE>(variable, evidence, args, kwargs);
         }
     }
 
-    return generic_new_factor<CKDE>(variable, evidence, args, kwargs);
+    return generic_new_factor<CPKDE>(variable, evidence, args, kwargs);
 }
 
-std::shared_ptr<Factor> CKDEType::new_factor(const ConditionalBayesianNetworkBase& m,
-                                             const std::string& variable,
-                                             const std::vector<std::string>& evidence,
-                                             py::args args,
-                                             py::kwargs kwargs) const {
+std::shared_ptr<Factor> CPKDEType::new_factor(const ConditionalBayesianNetworkBase& m,
+                                              const std::string& variable,
+                                              const std::vector<std::string>& evidence,
+                                              py::args args,
+                                              py::kwargs kwargs) const {
     for (const auto& e : evidence) {
         if (m.node_type(e) == DiscreteFactorType::get()) {
-            return generic_new_factor<HCKDE>(variable, evidence, args, kwargs);
+            return generic_new_factor<HCPKDE>(variable, evidence, args, kwargs);
         }
     }
 
-    return generic_new_factor<CKDE>(variable, evidence, args, kwargs);
+    return generic_new_factor<CPKDE>(variable, evidence, args, kwargs);
 }
 
 /**
- * @brief Public function to learn the CKDE parameters given the data.
+ * @brief Public function to learn the CPKDE parameters given the data.
  *
  * @param df Data.
  */
-void CKDE::fit(const DataFrame& df) {
+void CPKDE::fit(const DataFrame& df) {
     auto type = df.same_type(m_variables);
 
     m_training_type = type;
@@ -57,13 +57,13 @@ void CKDE::fit(const DataFrame& df) {
             _fit<arrow::FloatType>(df);
             break;
         default:
-            throw std::invalid_argument("Wrong data type to fit KDE. [double] or [float] data is expected.");
+            throw std::invalid_argument("Wrong data type to fit CPKDE. [double] or [float] data is expected.");
     }
 
     m_fitted = true;
 }
 
-VectorXd CKDE::logl(const DataFrame& df) const {
+VectorXd CPKDE::logl(const DataFrame& df) const {
     check_fitted();
     auto type = df.same_type(m_variables);
 
@@ -81,7 +81,7 @@ VectorXd CKDE::logl(const DataFrame& df) const {
     }
 }
 
-double CKDE::slogl(const DataFrame& df) const {
+double CPKDE::slogl(const DataFrame& df) const {
     check_fitted();
     auto type = df.same_type(m_variables);
 
@@ -99,7 +99,7 @@ double CKDE::slogl(const DataFrame& df) const {
     }
 }
 
-Array_ptr CKDE::sample(int n, const DataFrame& evidence_values, unsigned int seed) const {
+Array_ptr CPKDE::sample(int n, const DataFrame& evidence_values, unsigned int seed) const {
     if (n < 0) {
         throw std::invalid_argument("n should be a non-negative number");
     }
@@ -110,7 +110,7 @@ Array_ptr CKDE::sample(int n, const DataFrame& evidence_values, unsigned int see
 
         if (type->id() != m_training_type->id()) {
             throw std::invalid_argument("Data type of evidence values (" + type->name() +
-                                        ") is different from CKDE training data (" + m_training_type->name() + ").");
+                                        ") is different from CPKDE training data (" + m_training_type->name() + ").");
         }
     }
 
@@ -124,7 +124,7 @@ Array_ptr CKDE::sample(int n, const DataFrame& evidence_values, unsigned int see
     }
 }
 
-VectorXd CKDE::cdf(const DataFrame& df) const {
+VectorXd CPKDE::cdf(const DataFrame& df) const {
     check_fitted();
     auto type = df.same_type(m_variables);
 
@@ -142,31 +142,31 @@ VectorXd CKDE::cdf(const DataFrame& df) const {
     }
 }
 
-std::string CKDE::ToString() const {
+std::string CPKDE::ToString() const {
     std::stringstream stream;
     const auto& e = this->evidence();
     if (!e.empty()) {
-        stream << "[CKDE] P(" << this->variable() << " | " << e[0];
+        stream << "[CPKDE] P(" << this->variable() << " | " << e[0];
 
         for (size_t i = 1; i < e.size(); ++i) {
             stream << ", " << e[i];
         }
 
         if (m_fitted)
-            stream << ") = CKDE with " << N << " instances";
+            stream << ") = CPKDE with " << N << " instances";
         else
             stream << ") not fitted";
         return stream.str();
     } else {
         if (m_fitted)
-            stream << "[CKDE] P(" << this->variable() << ") = CKDE with " << N << " instances";
+            stream << "[CPKDE] P(" << this->variable() << ") = CPKDE with " << N << " instances";
         else
-            stream << "[CKDE] P(" << this->variable() << ") not fitted";
+            stream << "[CPKDE] P(" << this->variable() << ") not fitted";
         return stream.str();
     }
 }
 
-py::tuple CKDE::__getstate__() const {
+py::tuple CPKDE::__getstate__() const {
     switch (m_training_type->id()) {
         case Type::DOUBLE:
             return __getstate__<arrow::DoubleType>();
@@ -178,48 +178,49 @@ py::tuple CKDE::__getstate__() const {
     }
 }
 
-CKDE CKDE::__setstate__(py::tuple& t) {
-    if (t.size() != 4) throw std::runtime_error("Not valid CKDE.");
+CPKDE CPKDE::__setstate__(py::tuple& t) {
+    if (t.size() != 4) throw std::runtime_error("Not valid CPKDE.");
 
-    CKDE ckde(t[0].cast<std::string>(), t[1].cast<std::vector<std::string>>());
+    CPKDE cpkde(t[0].cast<std::string>(), t[1].cast<std::vector<std::string>>());
 
-    ckde.m_fitted = t[2].cast<bool>();
+    cpkde.m_fitted = t[2].cast<bool>();
 
-    if (ckde.m_fitted) {
+    if (cpkde.m_fitted) {
         auto joint_tuple = t[3].cast<py::tuple>();
-        auto kde_joint = KDE::__setstate__(joint_tuple);
-        ckde.m_bselector = kde_joint.bandwidth_type();
-        ckde.m_training_type = kde_joint.data_type();
-        ckde.N = kde_joint.num_instances();
-        ckde.m_joint = std::move(kde_joint);
+        auto kde_joint = ProductKDE::__setstate__(joint_tuple);
+        cpkde.m_bselector = kde_joint.bandwidth_type();
+        cpkde.m_training_type = kde_joint.data_type();
+        cpkde.N = kde_joint.num_instances();
+        cpkde.m_joint = std::move(kde_joint);
 
-        if (!ckde.evidence().empty()) {
-            auto& joint_bandwidth = ckde.m_joint.bandwidth();
-            auto d = ckde.m_variables.size();
+        if (!cpkde.evidence().empty()) {
+            auto& joint_bandwidth = cpkde.m_joint.bandwidth();
+            auto d = cpkde.m_variables.size();
             auto marg_bandwidth = joint_bandwidth.bottomRightCorner(d - 1, d - 1);
 
-            cl::Buffer& training_buffer = ckde.m_joint.training_buffer();
+            cl::Buffer& training_buffer = cpkde.m_joint.training_buffer();
 
             auto& opencl = OpenCLConfig::get();
 
-            switch (ckde.m_training_type->id()) {
+            switch (cpkde.m_training_type->id()) {
                 case Type::DOUBLE: {
-                    auto marg_buffer = opencl.copy_buffer<double>(training_buffer, ckde.N, ckde.N * (d - 1));
-                    ckde.m_marg.fit<arrow::DoubleType>(marg_bandwidth, marg_buffer, ckde.m_joint.data_type(), ckde.N);
+                    auto marg_buffer = opencl.copy_buffer<double>(training_buffer, cpkde.N, cpkde.N * (d - 1));
+                    cpkde.m_marg.fit<arrow::DoubleType>(
+                        marg_bandwidth, marg_buffer, cpkde.m_joint.data_type(), cpkde.N);
                     break;
                 }
                 case Type::FLOAT: {
-                    auto marg_buffer = opencl.copy_buffer<float>(training_buffer, ckde.N, ckde.N * (d - 1));
-                    ckde.m_marg.fit<arrow::FloatType>(marg_bandwidth, marg_buffer, ckde.m_joint.data_type(), ckde.N);
+                    auto marg_buffer = opencl.copy_buffer<float>(training_buffer, cpkde.N, cpkde.N * (d - 1));
+                    cpkde.m_marg.fit<arrow::FloatType>(marg_bandwidth, marg_buffer, cpkde.m_joint.data_type(), cpkde.N);
                     break;
                 }
                 default:
-                    throw std::invalid_argument("Wrong data type in CKDE.");
+                    throw std::invalid_argument("Wrong data type in CPKDE.");
             }
         }
     }
 
-    return ckde;
+    return cpkde;
 }
 
 }  // namespace factors::continuous
