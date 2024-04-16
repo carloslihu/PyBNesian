@@ -127,18 +127,26 @@ private:
     MatrixXd bandwidth(const DataFrame& df, const std::vector<std::string>& variables) const {
         using CType = typename ArrowType::c_type;
 
-        auto cov = df.cov<ArrowType>(variables);
+        auto cov_ptr = df.cov<ArrowType>(variables);
+        auto& cov = *cov_ptr;
+        // Make all the values of the covariance matrix zero except the diagonal
+        auto diag = cov.diagonal();
 
-        if (!util::is_psd(*cov)) {
-            std::stringstream ss;
-            ss << "ScottsBandwidth::bandwidth -> Covariance matrix for variables [" << variables[0];
-            for (size_t i = 1; i < variables.size(); ++i) {
-                ss << ", " << variables[i];
-            }
-            ss << "] is not positive-definite.";
+        // Create a new matrix of zeros with the same size as the original matrix
+        // auto diag_cov = Eigen::MatrixXd::Zero((*cov).rows(), (*cov).cols());
+        // Copy the diagonal from the original matrix
+        // diag_cov.diagonal() = (*cov).diagonal();
+        // TODO: Remove?
+        // if (!util::is_psd(diag)) {
+        //     std::stringstream ss;
+        //     ss << "ScottsBandwidth::bandwidth -> Covariance matrix for variables [" << variables[0];
+        //     for (size_t i = 1; i < variables.size(); ++i) {
+        //         ss << ", " << variables[i];
+        //     }
+        //     ss << "] is not positive-definite.";
 
-            throw util::singular_covariance_data(ss.str());
-        }
+        //     throw util::singular_covariance_data(ss.str());
+        // }
 
         auto N = static_cast<CType>(df.valid_rows(variables));
         auto d = static_cast<CType>(variables.size());
@@ -147,9 +155,10 @@ private:
         auto k = std::pow(N, -2. / (d + 4));
 
         if constexpr (std::is_same_v<ArrowType, arrow::DoubleType>) {
-            return k * (*cov);
+            return k * (diag);
         } else {
-            return k * cov->template cast<double>();
+            // cast diag_cov as
+            return (k * diag).template cast<double>();
         }
     }
 };

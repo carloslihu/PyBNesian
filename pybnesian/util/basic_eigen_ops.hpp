@@ -143,10 +143,15 @@ Matrix<typename M::Scalar, Dynamic, Dynamic> sqrt_matrix(const M& m) {
  * @return false If M is not positive definite.
  */
 template <typename M>
-bool is_psd(const M& m, int verbose = 1) {  // NOTE: alwats verbose
+bool is_psd(const M& m, int verbose = 1) {  // NOTE: always verbose
     using MatrixType = Matrix<typename M::Scalar, Dynamic, Dynamic>;
 
     Eigen::LLT<MatrixType> lltOfM(m);  // compute the Cholesky decomposition of m
+    // NOTE: Alternative?
+    // MatrixType full_m = m.toDenseMatrix();
+    // MatrixType full_m = m * MatrixType::Identity(m.rows(), m.cols());
+    // Eigen::LLT<MatrixType> lltOfM(full_m);  // compute the Cholesky decomposition of m
+
     if (lltOfM.info() == Eigen::NumericalIssue) {
         std::stringstream ss;
         ss << "basic_eigen_ops.hpp::is_psd:\t"
