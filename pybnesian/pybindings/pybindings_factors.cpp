@@ -7,6 +7,7 @@
 #include <factors/arguments.hpp>
 #include <factors/continuous/LinearGaussianCPD.hpp>
 #include <factors/continuous/CKDE.hpp>
+#include <factors/continuous/CPKDE.hpp>
 #include <factors/assignment.hpp>
 #include <factors/discrete/DiscreteFactor.hpp>
 #include <factors/factors.hpp>
@@ -16,10 +17,11 @@
 namespace py = pybind11;
 
 using factors::Arguments, factors::Args, factors::Kwargs;
-using factors::Factor, factors::continuous::LinearGaussianCPD, factors::continuous::CLinearGaussianCPD,
-    factors::continuous::HCKDE, factors::continuous::CKDE, factors::discrete::DiscreteFactor;
-using factors::FactorType, factors::continuous::LinearGaussianCPDType, factors::continuous::CKDEType,
-    factors::discrete::DiscreteFactorType;
+using factors::Factor, factors::discrete::DiscreteFactor, factors::continuous::LinearGaussianCPD,
+    factors::continuous::CLinearGaussianCPD, factors::continuous::CKDE, factors::continuous::HCKDE,
+    factors::continuous::CPKDE, factors::continuous::HCPKDE;
+using factors::FactorType, factors::discrete::DiscreteFactorType, factors::continuous::LinearGaussianCPDType,
+    factors::continuous::CKDEType, factors::continuous::CPKDEType;
 
 using factors::Assignment, factors::AssignmentValue, factors::AssignmentHash;
 using models::BayesianNetworkBase, models::ConditionalBayesianNetworkBase;
@@ -639,6 +641,74 @@ Returns the cumulative distribution function values of each instance in the Data
         .def(py::pickle([](const CKDE& self) { return self.__getstate__(); },
                         [](py::tuple t) { return CKDE::__setstate__(t); }));
 
+    py::class_<CPKDEType, FactorType, std::shared_ptr<CPKDEType>>(root, "CPKDEType", R"doc(
+:class:`CPKDEType` is the corresponding CPD type of :class:`CPKDE`.
+)doc")
+        .def(py::init(&CPKDEType::get), R"doc(
+Instantiates a :class:`CPKDEType`.
+)doc")
+        .def(py::pickle([](const CPKDEType& self) { return self.__getstate__(); },
+                        [](py::tuple&) { return CPKDEType::get(); }));
+
+    py::class_<CPKDE, Factor, std::shared_ptr<CPKDE>>(root, "CPKDE", R"doc(
+A conditional kernel density estimator (CPKDE) is the ratio of two ProductKDE models [Semiparametric]_:
+
+.. math::
+
+    \hat{f}(\text{variable} \mid \text{evidence}) =
+    \frac{\hat{f}_{K}(\text{variable}, \text{evidence})}{\hat{f}_{K}(\text{evidence})}
+
+where :math:`\hat{f}_{K}` is a :class:`ProductKDE` estimation.
+)doc")
+        .def(py::init<std::string, std::vector<std::string>>(),
+             py::arg("variable"),
+             py::arg("evidence"),
+             R"doc(
+Initializes a new :class:`CPKDE` with a given ``variable`` and ``evidence``.
+
+:param variable: Variable name.
+:param evidence: List of evidence variable names.
+)doc")
+        .def(py::init<>([](std::string variable,
+                           std::vector<std::string> evidence,
+                           std::shared_ptr<BandwidthSelector> bandwidth_selector) {
+                 return CPKDE(variable, evidence, BandwidthSelector::keep_python_alive(bandwidth_selector));
+             }),
+             py::arg("variable"),
+             py::arg("evidence"),
+             py::arg("bandwidth_selector"),
+             R"doc(
+Initializes a new :class:`CPKDE` with a given ``variable`` and ``evidence``.
+
+:param variable: Variable name.
+:param evidence: List of evidence variable names.
+:param bandwidth_selector: Procedure to fit the bandwidth.
+)doc")
+        .def("num_instances", &CPKDE::num_instances, R"doc(
+Gets the number of training instances (:math:`N`).
+
+:returns: Number of training instances.
+)doc")
+        .def("kde_joint", &CPKDE::kde_joint, py::return_value_policy::reference_internal, R"doc(
+Gets the joint :math:`\hat{f}_{K}(\text{variable}, \text{evidence})` :class:`PKDE` model.
+
+:returns: Joint PKDE model.
+)doc")
+        .def("kde_marg", &CPKDE::kde_marg, py::return_value_policy::reference_internal, R"doc(
+Gets the marginalized :math:`\hat{f}_{K}(\text{evidence})` :class:`PKDE` model.
+
+:returns: Marginalized PKDE model.
+)doc")
+        .def("cdf", &CPKDE::cdf, py::return_value_policy::take_ownership, py::arg("df"), R"doc(
+Returns the cumulative distribution function values of each instance in the DataFrame ``df``.
+
+:param df: DataFrame to compute the log-likelihood.
+:returns: A :class:`numpy.ndarray` vector with dtype :class:`numpy.float64`, where the i-th value is the cumulative
+          distribution function value of the i-th instance of ``df``.
+)doc")
+        .def(py::pickle([](const CPKDE& self) { return self.__getstate__(); },
+                        [](py::tuple t) { return CPKDE::__setstate__(t); }));
+
     py::class_<DiscreteFactorType, FactorType, std::shared_ptr<DiscreteFactorType>>(root, "DiscreteFactorType", R"doc(
 :class:`DiscreteFactorType` is the corresponding CPD type of :class:`DiscreteFactor`.
 )doc")
@@ -860,4 +930,74 @@ Return the corresponding :class:`CKDE <pybnesian.CKDE>` for the given discrete `
 )doc")
         .def(py::pickle([](const HCKDE& self) { return self.__getstate__(); },
                         [](py::tuple t) { return HCKDE::__setstate__(t); }));
+}
+
+py::class_<HCPKDE, Factor, std::shared_ptr<HCPKDE>>(root, "HCPKDE", R"doc(
+The hybrid conditional kernel density estimation (HCPKDE) [HybridSemiparametric]_ defines a
+:class:`CPKDE <pybnesian.CPKDE>` for each discrete configuration of its parents.
+)doc")
+    .def(py::init<std::string, std::vector<std::string>>(), py::arg("variable"), py::arg("evidence"), R"doc(
+Initializes a new :class:`HCPKDE` with a given ``variable`` and ``evidence``.
+
+The :class:`HCPKDE` is left unfitted.
+
+:param variable: Variable name.
+:param evidence: List of evidence variable names.
+)doc")
+    .def(py::init<>([](std::string variable,
+                       std::vector<std::string> evidence,
+                       std::shared_ptr<BandwidthSelector> bandwidth_selector) {
+             return HCPKDE(variable, evidence, BandwidthSelector::keep_python_alive(bandwidth_selector));
+         }),
+         py::arg("variable"),
+         py::arg("evidence"),
+         py::arg("bandwidth_selector"),
+         R"doc(
+Initializes a new :class:`HCPKDE` with a given ``variable`` and ``evidence``. Each :class:`HCPKDE` will be constructed
+using the provided ``bandwidth_selector``.
+
+Note that :class:`HCPKDE` is left unfitted because some data is needed to extract the categories of the discrete
+variables and to fit each :class:`CPKDE <pybnesian.CPKDE>`. You should call :func:`HCPKDE.fit <pybnesian.Factor.fit>`.
+
+:param variable: Variable name.
+:param evidence: List of evidence variable names.
+:param bandwidth_selector: A :class:`BandwidthSelector <pybnesian.BandwidthSelector>` to use for each :class:`CPKDE <pybnesian.CPKDE>`.
+)doc")
+    .def(py::init<>(
+             [](std::string variable,
+                std::vector<std::string> evidence,
+                std::unordered_map<Assignment, std::tuple<std::shared_ptr<BandwidthSelector>>, AssignmentHash> args) {
+                 for (auto& arg : args) {
+                     BandwidthSelector::keep_python_alive(std::get<0>(arg.second));
+                 }
+
+                 return HCPKDE(variable, evidence, args);
+             }),
+         py::arg("variable"),
+         py::arg("evidence"),
+         py::arg("bandwidth_selector"),
+         R"doc(
+Initializes a new :class:`HCPKDE` with a given ``variable`` and ``evidence``. The :class:`CPKDE <pybnesian.CPKDE>` of each
+discrete configuration can be constructed using different ``bandwidth_selector``.
+
+Note that :class:`HCPKDE` is left unfitted because some data is needed to extract the categories of the discrete
+variables and to fit each :class:`CPKDE <pybnesian.CPKDE>`. You should call :func:`HCPKDE.fit <pybnesian.Factor.fit>`. If
+some discrete configuration is not provided, the :class:`CPKDE <pybnesian.CPKDE>` will be fitted with the
+:class:`NormalRereferenceRule <pybnesian.NormalReferenceRule>`.
+
+:param variable: Variable name.
+:param evidence: List of evidence variable names.
+:param args: Dict of ``bandwidth_selectors`` for each discrete :class:`Assignment <pybnesian.Assignment>`.
+)doc")
+    .def("conditional_factor",
+         &HCPKDE::conditional_factor,
+         py::return_value_policy::reference_internal,
+         py::arg("assignment"),
+         R"doc(
+Return the corresponding :class:`CPKDE <pybnesian.CPKDE>` for the given discrete ``assignment``
+
+:param assignment: A discrete :class:`Assignment <pybnesian.Assignment>`.
+)doc")
+    .def(py::pickle([](const HCPKDE& self) { return self.__getstate__(); },
+                    [](py::tuple t) { return HCPKDE::__setstate__(t); }));
 }

@@ -53,9 +53,8 @@ public:
         if (m_bandwidth.rows() > 0) copy_bandwidth_opencl();
     }
 
-    // TODO: Check how to implement this which is a vector of cl::Buffer
-    cl::Buffer& training_buffer() { return m_training; }
-    const cl::Buffer& training_buffer() const { return m_training; }
+    cl::Buffer& training_buffer() { return combined_m_training; }
+    const cl::Buffer& training_buffer() const { return combined_m_training; }
 
     // cl::Buffer& cholesky_buffer() { return m_H_cholesky; }
     // const cl::Buffer& cholesky_buffer() const { return m_H_cholesky; }
@@ -127,6 +126,7 @@ private:
     VectorXd m_bandwidth;
     std::vector<cl::Buffer> m_cl_bandwidth;
     std::vector<cl::Buffer> m_training;
+    cl::Buffer combined_m_training;
     double m_lognorm_const;
     size_t N;
     std::shared_ptr<arrow::DataType> m_training_type;
@@ -212,6 +212,29 @@ void ProductKDE::_fit(const DataFrame& df) {
         } else {
             auto column = df.to_eigen<false, ArrowType, false>(m_variables[i]);
             m_training.push_back(opencl.copy_to_buffer(column->data(), N));
+        }
+
+        // TODO combined_m_training
+        auto& context = opencl.context();
+        auto& queue = opencl.queue();
+        // Assuming cl::CommandQueue queue and cl::Context context are defined and initialized
+        // std::vector<cl::Buffer> buffers;  // This is your vector of buffers
+
+        // Calculate the total size
+        size_t total_size = 0;
+        for (const auto& buffer : m_training) {
+            total_size += buffer.getInfo<CL_MEM_SIZE>();
+        }
+
+        // assign to combined_m_training a new buffer that is large enough to hold all the data
+        combined_m_training = cl::Buffer(context, CL_MEM_READ_WRITE, total_size);
+
+        // Copy each buffer into the new buffer at the correct offset
+        size_t offset = 0;
+        for (const auto& buffer : m_training) {
+            size_t size = buffer.getInfo<CL_MEM_SIZE>();
+            queue.enqueueCopyBuffer(buffer, combined_m_training, 0, offset, size);
+            offset += size;
         }
     }
     // auto training_data = df.to_eigen<false, ArrowType, contains_null>(m_variables);
