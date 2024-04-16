@@ -610,6 +610,7 @@ void KDE::_fit(const DataFrame& df) {
     m_training = opencl.copy_to_buffer(training_data->data(), N * d);
 
     // NOTE: The determinant of the bandwidth matrix is the product of the diagonal elements of the cholesky
+    // - log(|h|) - 1/2 * d * log(2 * pi) - log(N)
     m_lognorm_const = -cholesky.diagonal().array().log().sum() - 0.5 * d * std::log(2 * util::pi<double>) - std::log(N);
 }
 

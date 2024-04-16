@@ -106,7 +106,7 @@ class Build_CMakeExternalLibrary(build_clib):
             )
 
             # Copy the libraries to self.build_clib
-            lib_folder = None
+            lib_folder = ""
             for name in os.listdir(install_directory):
                 # The lib folder can be "lib" or "lib64"
                 if "lib" in name:
