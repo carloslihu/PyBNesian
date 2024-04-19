@@ -1,5 +1,10 @@
 import numpy as np
 import pandas as pd
+from numpy import atleast_2d, cov, pi
+
+# SciPy imports.
+from scipy import linalg
+from scipy.stats import gaussian_kde
 
 
 def generate_normal_data(size, seed=0):
@@ -241,3 +246,28 @@ def generate_normal_data_dep(size, seed=0):
     c_array = 3 * b_array
 
     return pd.DataFrame({"a": a_array, "b": b_array, "c": c_array})
+
+
+class product_kde(gaussian_kde):
+    # def __init__(self, dataset, bw_method=None, weights=None, covariance=None):
+    #     self.covariance = covariance
+    #     super().__init__(dataset, bw_method=bw_method, weights=weights)
+
+    def _compute_covariance(self):
+        """Computes the covariance matrix for each Gaussian kernel using
+        covariance_factor().
+        """
+        self.factor = self.covariance_factor()
+        # Cache covariance and Cholesky decomp of covariance
+        if not hasattr(self, "_data_cho_cov"):
+            self._data_covariance = atleast_2d(
+                cov(self.dataset, rowvar=1, bias=False, aweights=self.weights)
+            )
+            # NOTE: Only change from gaussian_kde
+            self._data_covariance = np.diag(np.diag(self._data_covariance))
+
+            self._data_cho_cov = linalg.cholesky(self._data_covariance, lower=True)
+
+        self.covariance = self._data_covariance * self.factor**2
+        self.cho_cov = (self._data_cho_cov * self.factor).astype(np.float64)
+        self.log_det = 2 * np.log(np.diag(self.cho_cov * np.sqrt(2 * pi))).sum()
