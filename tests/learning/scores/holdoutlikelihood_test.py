@@ -10,7 +10,9 @@ df = util_test.generate_normal_data(SIZE)
 seed = 0
 
 
-def numpy_local_score(node_type, training_data, test_data, variable, evidence):
+def numpy_local_score(
+    node_type, training_data, test_data, variable, evidence
+):  # TODO: Review
     if isinstance(variable, str):
         node_data = training_data.loc[:, [variable] + evidence].dropna()
         variable_data = node_data.loc[:, variable]
@@ -44,9 +46,7 @@ def numpy_local_score(node_type, training_data, test_data, variable, evidence):
             * s.scotts_factor(),
         )
         if evidence:
-            k_marg = gaussian_kde(
-                evidence_data.to_numpy().T, bw_method=k_joint.covariance_factor()
-            )
+            k_marg = gaussian_kde(evidence_data.to_numpy().T, bw_method=k_joint.factor)
             return np.sum(
                 k_joint.logpdf(test_node_data.to_numpy().T)
                 - k_marg.logpdf(test_evidence_data.to_numpy().T)

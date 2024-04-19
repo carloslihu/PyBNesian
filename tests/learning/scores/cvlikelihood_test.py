@@ -11,7 +11,7 @@ df = util_test.generate_normal_data(SIZE)
 seed = 0
 
 
-def numpy_local_score(node_type, data, variable, evidence):
+def numpy_local_score(node_type, data, variable, evidence):  # TODO: Review
     cv = pbn.CrossValidation(data, 10, seed)
     loglik = 0
     for train_df, test_df in cv:
@@ -181,7 +181,7 @@ def test_cvl_local_score_spbn():
         numpy_local_score(pbn.LinearGaussianCPDType(), df, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "c", ["a", "b"]),  # TODO: Review nan
+        cvl.local_score(spbn, "c", ["a", "b"]),
         numpy_local_score(pbn.CKDEType(), df, "c", ["a", "b"]),
     )
     assert np.isclose(
@@ -195,16 +195,14 @@ def test_cvl_local_score_spbn():
 
     assert cvl.local_score(spbn, "a") == cvl.local_score(spbn, "a", spbn.parents("a"))
     assert cvl.local_score(spbn, "b") == cvl.local_score(spbn, "b", spbn.parents("b"))
-    assert cvl.local_score(spbn, "c") == cvl.local_score(
-        spbn, "c", spbn.parents("c")
-    )  # TODO: Review nan
+    assert cvl.local_score(spbn, "c") == cvl.local_score(spbn, "c", spbn.parents("c"))
     assert cvl.local_score(spbn, "d") == cvl.local_score(spbn, "d", spbn.parents("d"))
 
     assert np.isclose(
         cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "a", []),
         numpy_local_score(pbn.LinearGaussianCPDType(), df, "a", []),
     )
-    assert np.isclose(  # TODO: Review nan
+    assert np.isclose(
         cvl.local_score_node_type(spbn, pbn.CKDEType(), "b", ["a"]),
         numpy_local_score(pbn.CKDEType(), df, "b", ["a"]),
     )
@@ -212,11 +210,11 @@ def test_cvl_local_score_spbn():
         cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "c", ["a", "b"]),
         numpy_local_score(pbn.LinearGaussianCPDType(), df, "c", ["a", "b"]),
     )
-    assert np.isclose(  # TODO: Review nan
+    assert np.isclose(
         cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
         numpy_local_score(pbn.CKDEType(), df, "d", ["a", "b", "c"]),
     )
-    assert np.isclose(  # TODO: Review nan
+    assert np.isclose(
         cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
         numpy_local_score(pbn.CKDEType(), df, "d", ["b", "c", "a"]),
     )
@@ -312,7 +310,7 @@ def test_cvl_score():
         [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
     )
 
-    assert np.isclose(  # TODO Review: NaN
+    assert np.isclose(
         cv.score(spbn),
         (
             cv.local_score(spbn, "a")

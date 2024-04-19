@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
-from scipy.stats import gaussian_kde
 from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
 
 import pybnesian as pbn
 import util_test
+from util_test import product_kde
 
 SIZE = 10000
 SMALL_SIZE = 10
@@ -102,7 +102,7 @@ def test_ckde_kde_marg():
 def test_ckde_fit():
     def _test_ckde_fit(variables, _df, instances):
         npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
+        scipy_kde = product_kde(
             npdata[:instances, :].T,
             bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
             * s.scotts_factor(),
@@ -147,7 +147,7 @@ def test_ckde_fit_null():
         npdata_instances = npdata[:instances, :]
         nan_rows = np.any(np.isnan(npdata_instances), axis=1)
         npdata_no_null = npdata_instances[~nan_rows, :]
-        scipy_kde = gaussian_kde(
+        scipy_kde = product_kde(
             npdata_no_null.T,
             bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
             * s.scotts_factor(),
@@ -201,13 +201,13 @@ def train_scipy_ckde(data, variable, evidence):
 
     nan_rows = np.any(np.isnan(npdata_joint), axis=1)
 
-    scipy_kde_joint = gaussian_kde(
+    scipy_kde_joint = product_kde(
         npdata_joint[~nan_rows, :].T,
         bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4)) * s.scotts_factor(),
     )
     if evidence:
-        scipy_kde_marg = gaussian_kde(
-            npdata_marg[~nan_rows, :].T, bw_method=scipy_kde_joint.covariance_factor()
+        scipy_kde_marg = product_kde(
+            npdata_marg[~nan_rows, :].T, bw_method=scipy_kde_joint.factor
         )
     else:
         scipy_kde_marg = None
