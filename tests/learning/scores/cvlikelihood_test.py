@@ -1,34 +1,29 @@
 import numpy as np
+import pandas as pd
 import pytest
-from scipy.stats import gaussian_kde, norm
+from scipy.stats import norm
 
 import pybnesian as pbn
-import util_test
+from util_test import generate_normal_data, product_kde
 
 SIZE = 1000
-df = util_test.generate_normal_data(SIZE)
+df = generate_normal_data(SIZE)
 
 seed = 0
 
 
-def numpy_local_score(node_type, data, variable, evidence):  # TODO: Review
+def numpy_local_score(
+    node_type: pbn.FactorType, data: pd.DataFrame, variable: str, evidence: list[str]
+):
     cv = pbn.CrossValidation(data, 10, seed)
     loglik = 0
     for train_df, test_df in cv:
-        if isinstance(variable, str):
-            node_data = train_df.to_pandas().loc[:, [variable] + evidence].dropna()
-            variable_data = node_data.loc[:, variable]
-            evidence_data = node_data.loc[:, evidence]
-            test_node_data = test_df.to_pandas().loc[:, [variable] + evidence].dropna()
-            test_variable_data = test_node_data.loc[:, variable]
-            test_evidence_data = test_node_data.loc[:, evidence]
-        else:
-            node_data = train_df.to_pandas().iloc[:, [variable] + evidence].dropna()
-            variable_data = node_data.iloc[:, 0]
-            evidence_data = node_data.iloc[:, 1:]
-            test_node_data = test_df.to_pandas().iloc[:, [variable] + evidence].dropna()
-            test_variable_data = test_node_data.iloc[:, 0]
-            test_evidence_data = test_node_data.iloc[:, 1:]
+        node_data = train_df.to_pandas().loc[:, [variable] + evidence].dropna()
+        variable_data = node_data.loc[:, variable]
+        evidence_data = node_data.loc[:, evidence]
+        test_node_data = test_df.to_pandas().loc[:, [variable] + evidence].dropna()
+        test_variable_data = test_node_data.loc[:, variable]
+        test_evidence_data = test_node_data.loc[:, evidence]
 
         if node_type == pbn.LinearGaussianCPDType():
             N = variable_data.shape[0]
@@ -41,14 +36,15 @@ def numpy_local_score(node_type, data, variable, evidence):  # TODO: Review
 
             means = beta[0] + np.sum(beta[1:] * test_evidence_data, axis=1)
             loglik += norm.logpdf(test_variable_data, means, np.sqrt(var)).sum()
+
         elif node_type == pbn.CKDEType():
-            k_joint = gaussian_kde(
+            k_joint = product_kde(
                 node_data.to_numpy().T,
                 bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
                 * s.scotts_factor(),
             )
             if evidence:
-                k_marg = gaussian_kde(
+                k_marg = product_kde(
                     evidence_data.to_numpy().T, bw_method=k_joint.factor
                 )
                 loglik += np.sum(

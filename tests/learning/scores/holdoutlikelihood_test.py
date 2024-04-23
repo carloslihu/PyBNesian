@@ -1,33 +1,32 @@
 import numpy as np
+import pandas as pd
 import pytest
-from scipy.stats import gaussian_kde, norm
+from scipy.stats import norm
+from utiltest import generate_normal_data, product_kde
 
 import pybnesian as pbn
-import util_test
 
 SIZE = 1000
-df = util_test.generate_normal_data(SIZE)
+df = generate_normal_data(SIZE)
 seed = 0
 
 
 def numpy_local_score(
-    node_type, training_data, test_data, variable, evidence
-):  # TODO: Review
-    if isinstance(variable, str):
-        node_data = training_data.loc[:, [variable] + evidence].dropna()
-        variable_data = node_data.loc[:, variable]
-        evidence_data = node_data.loc[:, evidence]
-        test_node_data = test_data.loc[:, [variable] + evidence].dropna()
-        test_variable_data = test_node_data.loc[:, variable]
-        test_evidence_data = test_node_data.loc[:, evidence]
-    else:
-        node_data = training_data.iloc[:, [variable] + evidence].dropna()
-        variable_data = node_data.iloc[:, 0]
-        evidence_data = node_data.iloc[:, 1:]
-        test_node_data = test_data.iloc[:, [variable] + evidence].dropna()
-        test_variable_data = test_node_data.iloc[:, 0]
-        test_evidence_data = test_node_data.iloc[:, 1:]
+    node_type: pbn.FactorType,
+    training_data: pd.DataFrame,
+    test_data: pd.DataFrame,
+    variable: str,
+    evidence: list[str],
+):
 
+    node_data = training_data.loc[:, [variable] + evidence].dropna()
+    variable_data = node_data.loc[:, variable]
+    evidence_data = node_data.loc[:, evidence]
+    test_node_data = test_data.loc[:, [variable] + evidence].dropna()
+    test_variable_data = test_node_data.loc[:, variable]
+    test_evidence_data = test_node_data.loc[:, evidence]
+
+    loglik = 0
     if node_type == pbn.LinearGaussianCPDType():
         N = variable_data.shape[0]
         d = evidence_data.shape[1]
@@ -38,44 +37,48 @@ def numpy_local_score(
         var = res / (N - d - 1)
 
         means = beta[0] + np.sum(beta[1:] * test_evidence_data, axis=1)
-        return norm.logpdf(test_variable_data, means, np.sqrt(var)).sum()
+        loglik = norm.logpdf(test_variable_data, means, np.sqrt(var)).sum()
+
     elif node_type == pbn.CKDEType():
-        k_joint = gaussian_kde(
+        k_joint = product_kde(
             node_data.to_numpy().T,
             bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
             * s.scotts_factor(),
         )
         if evidence:
-            k_marg = gaussian_kde(evidence_data.to_numpy().T, bw_method=k_joint.factor)
-            return np.sum(
+            k_marg = product_kde(evidence_data.to_numpy().T, bw_method=k_joint.factor)
+            loglik = np.sum(
                 k_joint.logpdf(test_node_data.to_numpy().T)
                 - k_marg.logpdf(test_evidence_data.to_numpy().T)
             )
         else:
-            return np.sum(k_joint.logpdf(test_node_data.to_numpy().T))
+            loglik = np.sum(k_joint.logpdf(test_node_data.to_numpy().T))
+
+    return loglik
 
 
 def test_holdout_create():
+    """Test HoldoutLikelihood creation with different parameters"""
     s = pbn.HoldoutLikelihood(df)
     assert s.training_data().num_rows == 0.8 * SIZE
     assert s.test_data().num_rows == 0.2 * SIZE
 
-    s = pbn.HoldoutLikelihood(df, 0.5)
+    s = pbn.HoldoutLikelihood(df, test_ratio=0.5)
     assert s.training_data().num_rows == 0.5 * SIZE
     assert s.test_data().num_rows == 0.5 * SIZE
 
-    s = pbn.HoldoutLikelihood(df, 0.2, 0)
-    s2 = pbn.HoldoutLikelihood(df, 0.2, 0)
+    s = pbn.HoldoutLikelihood(df, test_ratio=0.2, seed=0)
+    s2 = pbn.HoldoutLikelihood(df, test_ratio=0.2, seed=0)
 
     assert s.training_data().equals(s2.training_data())
     assert s.test_data().equals(s2.test_data())
 
     with pytest.raises(ValueError) as ex:
-        s = pbn.HoldoutLikelihood(df, 10, 0)
+        s = pbn.HoldoutLikelihood(df, test_ratio=10, seed=0)
     assert "test_ratio must be a number" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        s = pbn.HoldoutLikelihood(df, 0, 0)
+        s = pbn.HoldoutLikelihood(df, test_ratio=0, seed=0)
     assert "test_ratio must be a number" in str(ex.value)
 
 
