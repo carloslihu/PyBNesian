@@ -106,16 +106,16 @@ private:
 
         auto cov_ptr = df.cov<ArrowType>(variables);
         auto& cov = *cov_ptr;
-
-        if (!util::is_psd(cov)) {
-            std::stringstream ss;
-            ss << "NormalReferenceRule::diag_bandwidth -> Covariance matrix for variables [" << variables[0];
-            for (size_t i = 1; i < variables.size(); ++i) {
-                ss << ", " << variables[i];
-            }
-            ss << "] is not positive-definite.";
-            throw util::singular_covariance_data(ss.str());
-        }
+        // NOTE: UNNECESSARY CHECK
+        // if (!util::is_psd(cov)) {
+        //     std::stringstream ss;
+        //     ss << "NormalReferenceRule::diag_bandwidth -> Covariance matrix for variables [" << variables[0];
+        //     for (size_t i = 1; i < variables.size(); ++i) {
+        //         ss << ", " << variables[i];
+        //     }
+        //     ss << "] is not positive-definite.";
+        //     throw util::singular_covariance_data(ss.str());
+        // }
         // The covariance diagonal is used to calculate the bandwidth
         auto diag = cov.diagonal();
         auto delta = (cov.array().colwise() * diag.cwiseInverse().array()).matrix();  // diag(cov)^ (-1) * cov
@@ -153,14 +153,25 @@ private:
 
         auto cov_ptr = df.cov<ArrowType>(variables);
         auto& cov = *cov_ptr;
-        if (!util::is_psd(cov)) {
-            std::stringstream ss;
-            ss << "Covariance matrix for variables [" << variables[0];
-            for (size_t i = 1; i < variables.size(); ++i) {
-                ss << ", " << variables[i];
+
+        // NOTE: UNNECESSARY CHECK
+        // if (!util::is_psd(cov)) {
+        //     std::stringstream ss;
+        //     ss << "Covariance matrix for variables [" << variables[0];
+        //     for (size_t i = 1; i < variables.size(); ++i) {
+        //         ss << ", " << variables[i];
+        //     }
+        //     ss << "] is not positive-definite.";
+        //     throw util::singular_covariance_data(ss.str());
+        // }
+        // TODO: OPTIMIZE THIS
+        //  We put the non-diagonal elements to zero
+        for (auto i = 0; i < cov.rows(); ++i) {
+            for (auto j = 0; j < cov.cols(); ++j) {
+                if (i != j) {
+                    cov(i, j) = 0;
+                }
             }
-            ss << "] is not positive-definite.";
-            throw util::singular_covariance_data(ss.str());
         }
 
         auto N = static_cast<CType>(df.valid_rows(variables));

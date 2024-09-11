@@ -138,6 +138,15 @@ private:
             ss << "] is not positive-definite.";
             throw util::singular_covariance_data(ss.str());
         }
+        // TODO: OPTIMIZE THIS
+        //  We put the non-diagonal elements to zero
+        for (auto i = 0; i < cov.rows(); ++i) {
+            for (auto j = 0; j < cov.cols(); ++j) {
+                if (i != j) {
+                    cov(i, j) = 0;
+                }
+            }
+        }
 
         auto N = static_cast<CType>(df.valid_rows(variables));
         auto d = static_cast<CType>(variables.size());
