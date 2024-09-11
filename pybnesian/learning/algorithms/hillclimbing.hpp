@@ -103,6 +103,12 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
                                double epsilon,
                                int patience,
                                int verbose) {
+    std::string log_str = "HILL-CLIMBING::estimate_hc:\t";
+    try {
+        util::formatted_log_t(verbose, log_str + "Begins");
+        // We copy the arc_blacklist
+        // auto arc_blacklist_copy = arc_blacklist;
+
         // Spinner for the progress bar
     auto spinner = util::indeterminate_spinner(verbose);
     spinner->update_status("Checking dataset...");
@@ -143,6 +149,16 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
 
     spinner->update_status("Caching scores...");
 
+        // NOTE: Here the score of each node is calculated (log-likelihood fit)
+        // Partiendo de que se empieza con los nodos sin padres, se calcula el score independiente, y da que no es 0
+        // Opciones:
+        // 1. Se calcula el score independiente, y tras fallar el fit de log-likelihood se hace regularización?
+        // 2. Se elimina la variable?
+        // 3. Hacer try-catch para que cuando de error, se añada regularización al score
+
+        // TODO: Peta si hay variables sueltas con varianza 0 al hacer cross-validation -> Arreglar?
+        // Initializes the local validation scores for the current model
+        util::formatted_log_t(verbose, log_str + "Local Validation TBC");
         LocalScoreCache local_validation = [&]() {                 // Local validation scores (lambda expression)
             if constexpr (std::is_base_of_v<ValidatedScore, S>) {  // If the score is a ValidatedScore
                 LocalScoreCache lc(*current_model);                // Local score cache
@@ -155,18 +171,27 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
         }
     }();
 
-    op_set.cache_scores(*current_model, score);
+        util::formatted_log_t(verbose, log_str + "Local Validation Calculated");
+        // Cache scores
+        util::formatted_log_t(verbose, log_str + "op_set.cache_scores TBC");
+        // Caches the delta score values of each operator in the set.
+        op_set.cache_scores(*current_model, score);
     int p = 0;
     double accumulated_offset = 0;
 
+        util::formatted_log_t(verbose, log_str + "Scores cached");
     OperatorTabuSet tabu_set;
 
     if (callback) callback->call(*current_model, nullptr, score, 0);
-
+        util::formatted_log_t(verbose, log_str + "Hill climbing iterations begin");
+        // Hill climbing iterations begin
     auto iter = 0;
     while (iter < max_iters) {
         ++iter;
-
+            // Finds the best operator
+            // HC Algorithm lines 8 -> 16 [Atienza et al. (2022)]
+            // NOTE: Here the best operators are evaluated (log-likelihood fit)
+            util::formatted_log_t(verbose, log_str + "Best operator TBC");
         auto best_op = [&]() {
             if constexpr (zero_patience)
                 return op_set.find_max(*current_model);
@@ -175,12 +200,21 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
         }();
 
         if (!best_op || (best_op->delta() - epsilon) < util::machine_tol) {
+                util::formatted_log_t(verbose, log_str + "No improvement in best_op");
             break;
         }
+            util::formatted_log_t(verbose, log_str + "Best operator Calculated" + best_op->ToString());
+            // If the best operator is nullptr or the delta is less than epsilon, then the search process fails and
+            // stops
 
+            // S_validation puede pasar try { Algorithm lines 17 -> 24 [Atienza et al. (2022)] Applies the best operator
+            // to the current model
         best_op->apply(*current_model);
-
+            // Returns the nodes changed by the best operator
         auto nodes_changed = best_op->nodes_changed(*current_model);
+
+            // Calculates the validation delta
+            util::formatted_log_t(verbose, log_str + "Validation Delta TBC");
 
         double validation_delta = [&]() {
             if constexpr (std::is_base_of_v<ValidatedScore, S>) {
@@ -189,8 +223,12 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
                 return best_op->delta();
             }
         }();
-
-        if ((validation_delta + accumulated_offset) > util::machine_tol) {
+            util::formatted_log_t(verbose, log_str + "Validation Delta Calculated");
+            // Updates the best model if the validation delta is greater than 0
+            if ((validation_delta + accumulated_offset) >
+                util::machine_tol) {  // If the validation delta is greater than 0, then the current model is the best
+                                      // model
+                util::formatted_log_t(verbose, log_str + "Validation Delta is greater than 0");
             if constexpr (!zero_patience) {
                 if (p > 0) {
                     best_model = current_model;
@@ -200,7 +238,8 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
 
                 tabu_set.clear();
             }
-        } else {
+            } else {  // If the validation delta is less than 0, then the current model is not the best model
+                util::formatted_log_t(verbose, log_str + "Validation Delta is less than 0");
             if constexpr (zero_patience) {
                 best_model = prev_current_model;
                 break;
@@ -217,8 +256,10 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
 
         if (callback) callback->call(*current_model, best_op.get(), score, iter);
 
-        op_set.update_scores(*current_model, score, nodes_changed);
-
+            util::formatted_log_t(verbose, log_str + "Updating scores");
+            // NOTE: Here the scores node are reevaluated (log-likelihood fit)
+            op_set.update_scores(*current_model, score, nodes_changed);
+            util::formatted_log_t(verbose, log_str + "Scores updated");
         if constexpr (std::is_base_of_v<ValidatedScore, S>) {
                 spinner->update_status(best_op->ToString() +
                                        " | Validation delta: " + std::to_string(validation_delta));
@@ -236,6 +277,21 @@ std::shared_ptr<T> estimate_hc(OperatorSet& op_set,
 
     spinner->mark_as_completed("Finished Hill-climbing!");
     return best_model;
+    } catch (util::singular_covariance_data& e) {
+        util::formatted_log_t(verbose, log_str + "catch");
+        throw e;
+        //     auto arc_best_op = dynamic_cast<ArcOperator*>(best_op.get());
+        //     auto source_arc = arc_best_op->source();
+        //     auto target_arc = arc_best_op->target();
+
+        //     std::cout << e.what() << std::endl;
+        //     std::cout << "Source arc:\t" << source_arc << std::endl;
+        //     std::cout << "Target arc:\t" << target_arc << std::endl;
+
+        //     arc_blacklist_copy.push_back(std::make_pair(source_arc, target_arc));
+        //     std::cout << "New arc_blacklist:\t" << arc_blacklist << std::endl;
+        //     op_set.set_arc_blacklist(arc_blacklist_copy);
+    }
 }
 /**
  * @brief Depending on the validated_score and the patience of the hill climbing algorithm it estimates the
