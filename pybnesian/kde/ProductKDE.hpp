@@ -165,6 +165,12 @@ void ProductKDE::_fit(const DataFrame& df) {
 
     auto& opencl = OpenCLConfig::get();
 
+    // NOTE: Here the positive definiteness of the bandwidth is checked
+    // if bandwidth is not positive definite,
+    // - try to add a small value to the diagonal?
+    // m_bandwidth = m_bandwidth + VectorXd::Constant(m_variables.size(), 1e-6);
+
+    // - Add to blacklist and ignore this iteration?
     m_bandwidth = m_bselector->diag_bandwidth(df, m_variables);
 
     for (size_t i = 0; i < m_variables.size(); ++i) {
