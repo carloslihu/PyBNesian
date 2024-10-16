@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pytest
+from util_test import generate_discrete_data_dependent
 
 import pybnesian as pbn
-from util_test import generate_normal_data
 
-df = util_test.generate_discrete_data_dependent(10000)
+df = generate_discrete_data_dependent(10000)
 
 
 def test_data_type():
