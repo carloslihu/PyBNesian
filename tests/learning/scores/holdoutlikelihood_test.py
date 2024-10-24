@@ -46,9 +46,7 @@ def numpy_local_score(
             * s.scotts_factor(),
         )
         if evidence:
-            k_marg = gaussian_kde(
-                evidence_data.to_numpy().T, bw_method=k_joint.factor
-            )
+            k_marg = gaussian_kde(evidence_data.to_numpy().T, bw_method=k_joint.factor)
             loglik = np.sum(
                 k_joint.logpdf(test_node_data.to_numpy().T)
                 - k_marg.logpdf(test_evidence_data.to_numpy().T)
