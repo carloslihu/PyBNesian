@@ -281,7 +281,7 @@ def process_file(source):
     return '#line 1 "%s"\n%s' % (sourcefile, code)
 
 
-def unique_key(adict):
+def unique_key(adict: dict) -> str:
     # this obtains a unique key given a dictionary
     # currently it works by appending together n of the letters of the
     #   current keys and increasing n until a unique key is found
@@ -289,6 +289,7 @@ def unique_key(adict):
     allkeys = list(adict.keys())
     done = False
     n = 1
+    newkey = ""
     while not done:
         newkey = "".join([x[:n] for x in allkeys])
         if newkey in allkeys:
@@ -299,6 +300,7 @@ def unique_key(adict):
 
 
 def main():
+    file = None
     try:
         file = sys.argv[1]
     except IndexError:
