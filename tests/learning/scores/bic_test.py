@@ -1,8 +1,7 @@
 import numpy as np
+import pybnesian as pbn
 from scipy.stats import norm
 from util_test import generate_normal_data
-
-import pybnesian as pbn
 
 SIZE = 10000
 
@@ -35,38 +34,38 @@ def numpy_local_score(data, variable, evidence):
 
 def test_bic_local_score():
     gbn = pbn.GaussianNetwork(
-        ["a", "b", "c", "d"],
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
+        ["A", "B", "C", "D"],
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
     )
 
     bic = pbn.BIC(df)
 
-    assert np.isclose(bic.local_score(gbn, "a", []), numpy_local_score(df, "a", []))
+    assert np.isclose(bic.local_score(gbn, "A", []), numpy_local_score(df, "A", []))
     assert np.isclose(
-        bic.local_score(gbn, "b", ["a"]), numpy_local_score(df, "b", ["a"])
+        bic.local_score(gbn, "B", ["A"]), numpy_local_score(df, "B", ["A"])
     )
     assert np.isclose(
-        bic.local_score(gbn, "c", ["a", "b"]), numpy_local_score(df, "c", ["a", "b"])
+        bic.local_score(gbn, "C", ["A", "B"]), numpy_local_score(df, "C", ["A", "B"])
     )
     assert np.isclose(
-        bic.local_score(gbn, "d", ["a", "b", "c"]),
-        numpy_local_score(df, "d", ["a", "b", "c"]),
+        bic.local_score(gbn, "D", ["A", "B", "C"]),
+        numpy_local_score(df, "D", ["A", "B", "C"]),
     )
     assert np.isclose(
-        bic.local_score(gbn, "d", ["a", "b", "c"]),
-        numpy_local_score(df, "d", ["b", "c", "a"]),
+        bic.local_score(gbn, "D", ["A", "B", "C"]),
+        numpy_local_score(df, "D", ["B", "C", "A"]),
     )
 
-    assert bic.local_score(gbn, "a") == bic.local_score(gbn, "a", gbn.parents("a"))
-    assert bic.local_score(gbn, "b") == bic.local_score(gbn, "b", gbn.parents("b"))
-    assert bic.local_score(gbn, "c") == bic.local_score(gbn, "c", gbn.parents("c"))
-    assert bic.local_score(gbn, "d") == bic.local_score(gbn, "d", gbn.parents("d"))
+    assert bic.local_score(gbn, "A") == bic.local_score(gbn, "A", gbn.parents("A"))
+    assert bic.local_score(gbn, "B") == bic.local_score(gbn, "B", gbn.parents("B"))
+    assert bic.local_score(gbn, "C") == bic.local_score(gbn, "C", gbn.parents("C"))
+    assert bic.local_score(gbn, "D") == bic.local_score(gbn, "D", gbn.parents("D"))
 
 
 def test_bic_local_score_null():
     gbn = pbn.GaussianNetwork(
-        ["a", "b", "c", "d"],
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
+        ["A", "B", "C", "D"],
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
     )
 
     np.random.seed(0)
@@ -76,41 +75,41 @@ def test_bic_local_score_null():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     bic = pbn.BIC(df_null)
 
     assert np.isclose(
-        bic.local_score(gbn, "a", []), numpy_local_score(df_null, "a", [])
+        bic.local_score(gbn, "A", []), numpy_local_score(df_null, "A", [])
     )
     assert np.isclose(
-        bic.local_score(gbn, "b", ["a"]), numpy_local_score(df_null, "b", ["a"])
+        bic.local_score(gbn, "B", ["A"]), numpy_local_score(df_null, "B", ["A"])
     )
     assert np.isclose(
-        bic.local_score(gbn, "c", ["a", "b"]),
-        numpy_local_score(df_null, "c", ["a", "b"]),
+        bic.local_score(gbn, "C", ["A", "B"]),
+        numpy_local_score(df_null, "C", ["A", "B"]),
     )
     assert np.isclose(
-        bic.local_score(gbn, "d", ["a", "b", "c"]),
-        numpy_local_score(df_null, "d", ["a", "b", "c"]),
+        bic.local_score(gbn, "D", ["A", "B", "C"]),
+        numpy_local_score(df_null, "D", ["A", "B", "C"]),
     )
     assert np.isclose(
-        bic.local_score(gbn, "d", ["a", "b", "c"]),
-        numpy_local_score(df_null, "d", ["b", "c", "a"]),
+        bic.local_score(gbn, "D", ["A", "B", "C"]),
+        numpy_local_score(df_null, "D", ["B", "C", "A"]),
     )
 
-    assert bic.local_score(gbn, "a") == bic.local_score(gbn, "a", gbn.parents("a"))
-    assert bic.local_score(gbn, "b") == bic.local_score(gbn, "b", gbn.parents("b"))
-    assert bic.local_score(gbn, "c") == bic.local_score(gbn, "c", gbn.parents("c"))
-    assert bic.local_score(gbn, "d") == bic.local_score(gbn, "d", gbn.parents("d"))
+    assert bic.local_score(gbn, "A") == bic.local_score(gbn, "A", gbn.parents("A"))
+    assert bic.local_score(gbn, "B") == bic.local_score(gbn, "B", gbn.parents("B"))
+    assert bic.local_score(gbn, "C") == bic.local_score(gbn, "C", gbn.parents("C"))
+    assert bic.local_score(gbn, "D") == bic.local_score(gbn, "D", gbn.parents("D"))
 
 
 def test_bic_score():
     gbn = pbn.GaussianNetwork(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
     bic = pbn.BIC(df)
@@ -118,9 +117,9 @@ def test_bic_score():
     assert np.isclose(
         bic.score(gbn),
         (
-            bic.local_score(gbn, "a", [])
-            + bic.local_score(gbn, "b", ["a"])
-            + bic.local_score(gbn, "c", ["a", "b"])
-            + bic.local_score(gbn, "d", ["a", "b", "c"])
+            bic.local_score(gbn, "A", [])
+            + bic.local_score(gbn, "B", ["A"])
+            + bic.local_score(gbn, "C", ["A", "B"])
+            + bic.local_score(gbn, "D", ["A", "B", "C"])
         ),
     )

@@ -1,10 +1,8 @@
 import pickle
 
 import pyarrow as pa
-import pytest
-from util_test import generate_discrete_data_dependent, generate_normal_data_indep
-
 import pybnesian as pbn
+import pytest
 from pybnesian import (
     CKDE,
     BayesianNetwork,
@@ -17,29 +15,30 @@ from pybnesian import (
     LinearGaussianCPD,
     SemiparametricBN,
 )
+from util_test import generate_discrete_data, generate_normal_data_independent
 
 
 @pytest.fixture
 def gaussian_bytes():
-    gaussian = GaussianNetwork(["a", "b", "c", "d"], [("a", "b")])
+    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(gaussian)
 
 
 @pytest.fixture
 def spbn_bytes():
-    spbn = SemiparametricBN(["a", "b", "c", "d"], [("a", "b")], [("b", pbn.CKDEType())])
+    spbn = SemiparametricBN(["A", "B", "C", "D"], [("A", "B")], [("B", pbn.CKDEType())])
     return pickle.dumps(spbn)
 
 
 @pytest.fixture
 def kde_bytes():
-    kde = KDENetwork(["a", "b", "c", "d"], [("a", "b")])
+    kde = KDENetwork(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(kde)
 
 
 @pytest.fixture
 def discrete_bytes():
-    discrete = DiscreteBN(["a", "b", "c", "d"], [("a", "b")])
+    discrete = DiscreteBN(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(discrete)
 
 
@@ -54,7 +53,7 @@ class MyRestrictedGaussianNetworkType(BayesianNetworkType):
         return pbn.LinearGaussianCPDType()
 
     def can_have_arc(self, model, source, target):
-        return "a" in source
+        return "A" in source
 
     def new_bn(self, nodes):
         return NewBN(nodes)
@@ -69,7 +68,7 @@ class MyRestrictedGaussianNetworkType(BayesianNetworkType):
 @pytest.fixture
 def genericbn_bytes():
     gen = BayesianNetwork(
-        MyRestrictedGaussianNetworkType(), ["a", "b", "c", "d"], [("a", "b")]
+        MyRestrictedGaussianNetworkType(), ["A", "B", "C", "D"], [("A", "B")]
     )
     return pickle.dumps(gen)
 
@@ -86,7 +85,7 @@ class NewBN(BayesianNetwork):
 
 @pytest.fixture
 def newbn_bytes():
-    new = NewBN(["a", "b", "c", "d"], [("a", "b")])
+    new = NewBN(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(new)
 
 
@@ -142,12 +141,12 @@ class OtherBN(BayesianNetwork):
 @pytest.fixture
 def otherbn_bytes():
     other = OtherBN(
-        ["a", "b", "c", "d"],
-        [("a", "b")],
+        ["A", "B", "C", "D"],
+        [("A", "B")],
         [
-            ("b", pbn.LinearGaussianCPDType()),
-            ("c", pbn.CKDEType()),
-            ("d", pbn.DiscreteFactorType()),
+            ("B", pbn.LinearGaussianCPDType()),
+            ("C", pbn.CKDEType()),
+            ("D", pbn.DiscreteFactorType()),
         ],
     )
     return pickle.dumps(other)
@@ -163,50 +162,50 @@ def test_serialization_bn_model(
     otherbn_bytes,
 ):
     loaded_g = pickle.loads(gaussian_bytes)
-    assert set(loaded_g.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_g.arcs() == [("a", "b")]
+    assert set(loaded_g.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_g.arcs() == [("A", "B")]
     assert loaded_g.type() == pbn.GaussianNetworkType()
 
     loaded_s = pickle.loads(spbn_bytes)
-    assert set(loaded_s.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_s.arcs() == [("a", "b")]
+    assert set(loaded_s.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_s.arcs() == [("A", "B")]
     assert loaded_s.type() == pbn.SemiparametricBNType()
     assert loaded_s.node_types() == {
-        "a": pbn.UnknownFactorType(),
-        "b": pbn.CKDEType(),
-        "c": pbn.UnknownFactorType(),
-        "d": pbn.UnknownFactorType(),
+        "A": pbn.UnknownFactorType(),
+        "B": pbn.CKDEType(),
+        "C": pbn.UnknownFactorType(),
+        "D": pbn.UnknownFactorType(),
     }
 
     loaded_k = pickle.loads(kde_bytes)
-    assert set(loaded_k.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_k.arcs() == [("a", "b")]
+    assert set(loaded_k.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_k.arcs() == [("A", "B")]
     assert loaded_k.type() == pbn.KDENetworkType()
 
     loaded_d = pickle.loads(discrete_bytes)
-    assert set(loaded_d.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_d.arcs() == [("a", "b")]
+    assert set(loaded_d.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_d.arcs() == [("A", "B")]
     assert loaded_d.type() == pbn.DiscreteBNType()
 
     loaded_gen = pickle.loads(genericbn_bytes)
-    assert set(loaded_gen.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_gen.arcs() == [("a", "b")]
+    assert set(loaded_gen.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_gen.arcs() == [("A", "B")]
     assert loaded_gen.type() == MyRestrictedGaussianNetworkType()
 
     loaded_nn = pickle.loads(newbn_bytes)
-    assert set(loaded_g.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_nn.arcs() == [("a", "b")]
+    assert set(loaded_g.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_nn.arcs() == [("A", "B")]
     assert loaded_nn.type() == MyRestrictedGaussianNetworkType()
 
     loaded_o = pickle.loads(otherbn_bytes)
-    assert set(loaded_g.nodes()) == set(["a", "b", "c", "d"])
-    assert loaded_o.arcs() == [("a", "b")]
+    assert set(loaded_g.nodes()) == set(["A", "B", "C", "D"])
+    assert loaded_o.arcs() == [("A", "B")]
     assert loaded_o.type() == NonHomogeneousType()
     assert loaded_o.node_types() == {
-        "a": pbn.UnknownFactorType(),
-        "b": pbn.LinearGaussianCPDType(),
-        "c": pbn.CKDEType(),
-        "d": pbn.DiscreteFactorType(),
+        "A": pbn.UnknownFactorType(),
+        "B": pbn.LinearGaussianCPDType(),
+        "C": pbn.CKDEType(),
+        "D": pbn.DiscreteFactorType(),
     }
     assert loaded_o.extra_info == "extra"
 
@@ -215,8 +214,8 @@ def test_serialization_bn_model(
 
 @pytest.fixture
 def gaussian_partial_fit_bytes():
-    gaussian = GaussianNetwork(["a", "b", "c", "d"], [("a", "b")])
-    lg = pbn.LinearGaussianCPD("b", ["a"], [1, 2], 2)
+    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
+    lg = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
     gaussian.add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -224,11 +223,11 @@ def gaussian_partial_fit_bytes():
 
 @pytest.fixture
 def gaussian_fit_bytes():
-    gaussian = GaussianNetwork(["a", "b", "c", "d"], [("a", "b")])
-    lg_a = LinearGaussianCPD("a", [], [0], 0.5)
-    lg_b = LinearGaussianCPD("b", ["a"], [1, 2], 2)
-    lg_c = LinearGaussianCPD("c", [], [2], 1)
-    lg_d = LinearGaussianCPD("d", [], [3], 1.5)
+    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
+    lg_a = LinearGaussianCPD("A", [], [0], 0.5)
+    lg_b = LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    lg_c = LinearGaussianCPD("C", [], [2], 1)
+    lg_d = LinearGaussianCPD("D", [], [3], 1.5)
     gaussian.add_cpds([lg_a, lg_b, lg_c, lg_d])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -237,15 +236,15 @@ def gaussian_fit_bytes():
 @pytest.fixture
 def other_partial_fit_bytes():
     other = OtherBN(
-        ["a", "b", "c", "d"],
-        [("a", "b")],
+        ["A", "B", "C", "D"],
+        [("A", "B")],
         [
-            ("b", pbn.LinearGaussianCPDType()),
-            ("c", pbn.CKDEType()),
-            ("d", pbn.DiscreteFactorType()),
+            ("B", pbn.LinearGaussianCPDType()),
+            ("C", pbn.CKDEType()),
+            ("D", pbn.DiscreteFactorType()),
         ],
     )
-    lg = LinearGaussianCPD("b", ["a"], [1, 2], 2)
+    lg = LinearGaussianCPD("B", ["A"], [1, 2], 2)
     other.add_cpds([lg])
     other.include_cpd = True
     return pickle.dumps(other)
@@ -254,24 +253,23 @@ def other_partial_fit_bytes():
 @pytest.fixture
 def other_fit_bytes():
     other = OtherBN(
-        ["a", "b", "c", "d"],
-        [("a", "b")],
+        ["A", "B", "C", "D"],
+        [("A", "B")],
         [
-            ("b", pbn.LinearGaussianCPDType()),
-            ("c", pbn.CKDEType()),
-            ("d", pbn.DiscreteFactorType()),
+            ("B", pbn.LinearGaussianCPDType()),
+            ("C", pbn.CKDEType()),
+            ("D", pbn.DiscreteFactorType()),
         ],
     )
-    cpd_a = LinearGaussianCPD("a", [], [0], 0.5)
-    cpd_b = LinearGaussianCPD("b", ["a"], [1, 2], 2)
+    cpd_a = LinearGaussianCPD("A", [], [0], 0.5)
+    cpd_b = LinearGaussianCPD("B", ["A"], [1, 2], 2)
 
-    df_continuous = generate_normal_data_indep(100)
-    cpd_c = CKDE("c", [])
+    df_continuous = generate_normal_data_independent(100)
+    cpd_c = CKDE("C", [])
     cpd_c.fit(df_continuous)
 
-    df_discrete = generate_discrete_data_dependent(100)
-    df_discrete.columns = df_discrete.columns.str.lower()
-    cpd_d = DiscreteFactor("d", [])
+    df_discrete = generate_discrete_data(100)
+    cpd_d = DiscreteFactor("D", [])
     cpd_d.fit(df_discrete)
 
     other.add_cpds([cpd_a, cpd_b, cpd_c, cpd_d])
@@ -291,9 +289,9 @@ def test_serialization_fitted_bn(
     # ####################
     loaded_partial = pickle.loads(gaussian_partial_fit_bytes)
     assert not loaded_partial.fitted()
-    cpd = loaded_partial.cpd("b")
-    assert cpd.variable() == "b"
-    assert cpd.evidence() == ["a"]
+    cpd = loaded_partial.cpd("B")
+    assert cpd.variable() == "B"
+    assert cpd.evidence() == ["A"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
@@ -303,26 +301,26 @@ def test_serialization_fitted_bn(
     loaded_fitted = pickle.loads(gaussian_fit_bytes)
     assert loaded_fitted.fitted()
 
-    cpd_a = loaded_fitted.cpd("a")
-    assert cpd_a.variable() == "a"
+    cpd_a = loaded_fitted.cpd("A")
+    assert cpd_a.variable() == "A"
     assert cpd_a.evidence() == []
     assert cpd_a.beta == [0]
     assert cpd_a.variance == 0.5
 
-    cpd_b = loaded_fitted.cpd("b")
-    assert cpd_b.variable() == "b"
-    assert cpd_b.evidence() == ["a"]
+    cpd_b = loaded_fitted.cpd("B")
+    assert cpd_b.variable() == "B"
+    assert cpd_b.evidence() == ["A"]
     assert list(cpd_b.beta) == [1, 2]
     assert cpd_b.variance == 2
 
-    cpd_c = loaded_fitted.cpd("c")
-    assert cpd_c.variable() == "c"
+    cpd_c = loaded_fitted.cpd("C")
+    assert cpd_c.variable() == "C"
     assert cpd_c.evidence() == []
     assert cpd_c.beta == [2]
     assert cpd_c.variance == 1
 
-    cpd_d = loaded_fitted.cpd("d")
-    assert cpd_d.variable() == "d"
+    cpd_d = loaded_fitted.cpd("D")
+    assert cpd_d.variable() == "D"
     assert cpd_d.evidence() == []
     assert cpd_d.beta == [3]
     assert cpd_d.variance == 1.5
@@ -332,9 +330,9 @@ def test_serialization_fitted_bn(
     # ####################
     loaded_other = pickle.loads(other_partial_fit_bytes)
     assert not loaded_other.fitted()
-    cpd = loaded_partial.cpd("b")
-    assert cpd.variable() == "b"
-    assert cpd.evidence() == ["a"]
+    cpd = loaded_partial.cpd("B")
+    assert cpd.variable() == "B"
+    assert cpd.evidence() == ["A"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
@@ -344,29 +342,29 @@ def test_serialization_fitted_bn(
     loaded_other_fitted = pickle.loads(other_fit_bytes)
     assert loaded_other_fitted.fitted()
 
-    cpd_a = loaded_other_fitted.cpd("a")
-    assert cpd_a.variable() == "a"
+    cpd_a = loaded_other_fitted.cpd("A")
+    assert cpd_a.variable() == "A"
     assert cpd_a.evidence() == []
     assert cpd_a.beta == [0]
     assert cpd_a.variance == 0.5
     assert cpd_a.type() == pbn.LinearGaussianCPDType()
 
-    cpd_b = loaded_other_fitted.cpd("b")
-    assert cpd_b.variable() == "b"
-    assert cpd_b.evidence() == ["a"]
+    cpd_b = loaded_other_fitted.cpd("B")
+    assert cpd_b.variable() == "B"
+    assert cpd_b.evidence() == ["A"]
     assert list(cpd_b.beta) == [1, 2]
     assert cpd_b.variance == 2
     assert cpd_b.type() == pbn.LinearGaussianCPDType()
 
-    cpd_c = loaded_other_fitted.cpd("c")
-    assert cpd_c.variable() == "c"
+    cpd_c = loaded_other_fitted.cpd("C")
+    assert cpd_c.variable() == "C"
     assert cpd_c.evidence() == []
     assert cpd_c.fitted()
     assert cpd_c.num_instances() == 100
     assert cpd_c.type() == pbn.CKDEType()
 
-    cpd_d = loaded_other_fitted.cpd("d")
-    assert cpd_d.variable() == "d"
+    cpd_d = loaded_other_fitted.cpd("D")
+    assert cpd_d.variable() == "D"
     assert cpd_d.evidence() == []
     assert cpd_d.fitted()
     assert cpd_d.type() == pbn.DiscreteFactorType()
@@ -379,34 +377,34 @@ def test_serialization_fitted_bn(
 
 @pytest.fixture
 def cond_gaussian_bytes():
-    gaussian = pbn.ConditionalGaussianNetwork(["c", "d"], ["a", "b"], [("a", "c")])
+    gaussian = pbn.ConditionalGaussianNetwork(["C", "D"], ["A", "B"], [("A", "C")])
     return pickle.dumps(gaussian)
 
 
 @pytest.fixture
 def cond_spbn_bytes():
     spbn = pbn.ConditionalSemiparametricBN(
-        ["c", "d"], ["a", "b"], [("a", "c")], [("c", pbn.CKDEType())]
+        ["C", "D"], ["A", "B"], [("A", "C")], [("C", pbn.CKDEType())]
     )
     return pickle.dumps(spbn)
 
 
 @pytest.fixture
 def cond_kde_bytes():
-    kde = pbn.ConditionalKDENetwork(["c", "d"], ["a", "b"], [("a", "c")])
+    kde = pbn.ConditionalKDENetwork(["C", "D"], ["A", "B"], [("A", "C")])
     return pickle.dumps(kde)
 
 
 @pytest.fixture
 def cond_discrete_bytes():
-    discrete = pbn.ConditionalDiscreteBN(["c", "d"], ["a", "b"], [("a", "c")])
+    discrete = pbn.ConditionalDiscreteBN(["C", "D"], ["A", "B"], [("A", "C")])
     return pickle.dumps(discrete)
 
 
 @pytest.fixture
 def cond_genericbn_bytes():
     gen = ConditionalBayesianNetwork(
-        MyRestrictedGaussianNetworkType(), ["c", "d"], ["a", "b"], [("a", "c")]
+        MyRestrictedGaussianNetworkType(), ["C", "D"], ["A", "B"], [("A", "C")]
     )
     return pickle.dumps(gen)
 
@@ -425,7 +423,7 @@ class ConditionalNewBN(ConditionalBayesianNetwork):
 
 @pytest.fixture
 def cond_newbn_bytes():
-    new = ConditionalNewBN(["c", "d"], ["a", "b"], [("a", "c")])
+    new = ConditionalNewBN(["C", "D"], ["A", "B"], [("A", "C")])
     return pickle.dumps(new)
 
 
@@ -462,13 +460,13 @@ class ConditionalOtherBN(ConditionalBayesianNetwork):
 @pytest.fixture
 def cond_otherbn_bytes():
     other = ConditionalOtherBN(
-        ["c", "d"],
-        ["a", "b"],
-        [("a", "c")],
+        ["C", "D"],
+        ["A", "B"],
+        [("A", "C")],
         [
-            ("b", pbn.LinearGaussianCPDType()),
-            ("c", pbn.CKDEType()),
-            ("d", pbn.DiscreteFactorType()),
+            ("B", pbn.LinearGaussianCPDType()),
+            ("C", pbn.CKDEType()),
+            ("D", pbn.DiscreteFactorType()),
         ],
     )
     return pickle.dumps(other)
@@ -486,48 +484,48 @@ def test_serialization_conditional_bn_model(
     otherbn_bytes,
 ):
     loaded_g = pickle.loads(cond_gaussian_bytes)
-    assert set(loaded_g.nodes()) == set(["c", "d"])
-    assert set(loaded_g.interface_nodes()) == set(["a", "b"])
-    assert loaded_g.arcs() == [("a", "c")]
+    assert set(loaded_g.nodes()) == set(["C", "D"])
+    assert set(loaded_g.interface_nodes()) == set(["A", "B"])
+    assert loaded_g.arcs() == [("A", "C")]
     assert loaded_g.type() == pbn.GaussianNetworkType()
 
     loaded_s = pickle.loads(cond_spbn_bytes)
-    assert set(loaded_s.nodes()) == set(["c", "d"])
-    assert set(loaded_s.interface_nodes()) == set(["a", "b"])
-    assert loaded_s.arcs() == [("a", "c")]
+    assert set(loaded_s.nodes()) == set(["C", "D"])
+    assert set(loaded_s.interface_nodes()) == set(["A", "B"])
+    assert loaded_s.arcs() == [("A", "C")]
     assert loaded_s.type() == pbn.SemiparametricBNType()
-    assert loaded_s.node_types() == {"c": pbn.CKDEType(), "d": pbn.UnknownFactorType()}
+    assert loaded_s.node_types() == {"C": pbn.CKDEType(), "D": pbn.UnknownFactorType()}
 
     loaded_k = pickle.loads(cond_kde_bytes)
-    assert set(loaded_k.nodes()) == set(["c", "d"])
-    assert set(loaded_k.interface_nodes()) == set(["a", "b"])
-    assert loaded_k.arcs() == [("a", "c")]
+    assert set(loaded_k.nodes()) == set(["C", "D"])
+    assert set(loaded_k.interface_nodes()) == set(["A", "B"])
+    assert loaded_k.arcs() == [("A", "C")]
     assert loaded_k.type() == pbn.KDENetworkType()
 
     loaded_d = pickle.loads(cond_discrete_bytes)
-    assert set(loaded_d.nodes()) == set(["c", "d"])
-    assert set(loaded_d.interface_nodes()) == set(["a", "b"])
-    assert loaded_d.arcs() == [("a", "c")]
+    assert set(loaded_d.nodes()) == set(["C", "D"])
+    assert set(loaded_d.interface_nodes()) == set(["A", "B"])
+    assert loaded_d.arcs() == [("A", "C")]
     assert loaded_d.type() == pbn.DiscreteBNType()
 
     loaded_gen = pickle.loads(cond_genericbn_bytes)
-    assert set(loaded_gen.nodes()) == set(["c", "d"])
-    assert set(loaded_gen.interface_nodes()) == set(["a", "b"])
-    assert loaded_gen.arcs() == [("a", "c")]
+    assert set(loaded_gen.nodes()) == set(["C", "D"])
+    assert set(loaded_gen.interface_nodes()) == set(["A", "B"])
+    assert loaded_gen.arcs() == [("A", "C")]
     assert loaded_gen.type() == MyRestrictedGaussianNetworkType()
 
     loaded_nn = pickle.loads(cond_newbn_bytes)
-    assert set(loaded_nn.nodes()) == set(["c", "d"])
-    assert set(loaded_nn.interface_nodes()) == set(["a", "b"])
-    assert loaded_nn.arcs() == [("a", "c")]
+    assert set(loaded_nn.nodes()) == set(["C", "D"])
+    assert set(loaded_nn.interface_nodes()) == set(["A", "B"])
+    assert loaded_nn.arcs() == [("A", "C")]
     assert loaded_nn.type() == MyRestrictedGaussianNetworkType()
 
     loaded_o = pickle.loads(cond_otherbn_bytes)
-    assert set(loaded_o.nodes()) == set(["c", "d"])
-    assert set(loaded_o.interface_nodes()) == set(["a", "b"])
-    assert loaded_o.arcs() == [("a", "c")]
+    assert set(loaded_o.nodes()) == set(["C", "D"])
+    assert set(loaded_o.interface_nodes()) == set(["A", "B"])
+    assert loaded_o.arcs() == [("A", "C")]
     assert loaded_o.type() == NonHomogeneousType()
-    assert loaded_o.node_types() == {"c": pbn.CKDEType(), "d": pbn.DiscreteFactorType()}
+    assert loaded_o.node_types() == {"C": pbn.CKDEType(), "D": pbn.DiscreteFactorType()}
     assert loaded_o.extra_info == "extra"
 
     assert loaded_nn.type() != loaded_o.type()
@@ -541,8 +539,8 @@ def test_serialization_conditional_bn_model(
 
 @pytest.fixture
 def cond_gaussian_partial_fit_bytes():
-    gaussian = pbn.ConditionalGaussianNetwork(["c", "d"], ["a", "b"], [("a", "c")])
-    lg = LinearGaussianCPD("c", ["a"], [1, 2], 2)
+    gaussian = pbn.ConditionalGaussianNetwork(["C", "D"], ["A", "B"], [("A", "C")])
+    lg = LinearGaussianCPD("C", ["A"], [1, 2], 2)
     gaussian.add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -550,9 +548,9 @@ def cond_gaussian_partial_fit_bytes():
 
 @pytest.fixture
 def cond_gaussian_fit_bytes():
-    gaussian = pbn.ConditionalGaussianNetwork(["c", "d"], ["a", "b"], [("a", "c")])
-    lg_c = LinearGaussianCPD("c", ["a"], [1, 2], 2)
-    lg_d = LinearGaussianCPD("d", [], [3], 1.5)
+    gaussian = pbn.ConditionalGaussianNetwork(["C", "D"], ["A", "B"], [("A", "C")])
+    lg_c = LinearGaussianCPD("C", ["A"], [1, 2], 2)
+    lg_d = LinearGaussianCPD("D", [], [3], 1.5)
     gaussian.add_cpds([lg_c, lg_d])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -561,12 +559,12 @@ def cond_gaussian_fit_bytes():
 @pytest.fixture
 def cond_other_partial_fit_bytes():
     other = ConditionalOtherBN(
-        ["c", "d"],
-        ["a", "b"],
-        [("a", "c")],
-        [("c", pbn.CKDEType()), ("d", pbn.LinearGaussianCPDType())],
+        ["C", "D"],
+        ["A", "B"],
+        [("A", "C")],
+        [("C", pbn.CKDEType()), ("D", pbn.LinearGaussianCPDType())],
     )
-    lg = LinearGaussianCPD("d", [], [3], 1.5)
+    lg = LinearGaussianCPD("D", [], [3], 1.5)
     other.add_cpds([lg])
     other.include_cpd = True
     return pickle.dumps(other)
@@ -575,20 +573,19 @@ def cond_other_partial_fit_bytes():
 @pytest.fixture
 def cond_other_fit_bytes():
     other = ConditionalOtherBN(
-        ["c", "d"],
-        ["a", "b"],
-        [("a", "c")],
-        [("c", pbn.CKDEType()), ("d", pbn.DiscreteFactorType())],
+        ["C", "D"],
+        ["A", "B"],
+        [("A", "C")],
+        [("C", pbn.CKDEType()), ("D", pbn.DiscreteFactorType())],
     )
-    cpd_c = CKDE("c", ["a"])
-    cpd_d = DiscreteFactor("d", [])
+    cpd_c = CKDE("C", ["A"])
+    cpd_d = DiscreteFactor("D", [])
 
-    df_continuous = generate_normal_data_indep(100)
+    df_continuous = generate_normal_data_independent(100)
     cpd_c.fit(df_continuous)
 
-    df_discrete = generate_discrete_data_dependent(100)
-    df_discrete.columns = df_discrete.columns.str.lower()
-    cpd_d = DiscreteFactor("d", [])
+    df_discrete = generate_discrete_data(100)
+    cpd_d = DiscreteFactor("D", [])
     cpd_d.fit(df_discrete)
 
     other.add_cpds([cpd_c, cpd_d])
@@ -608,9 +605,9 @@ def test_serialization_fitted_conditional_bn(
     # ####################
     loaded_partial = pickle.loads(cond_gaussian_partial_fit_bytes)
     assert not loaded_partial.fitted()
-    cpd = loaded_partial.cpd("c")
-    assert cpd.variable() == "c"
-    assert cpd.evidence() == ["a"]
+    cpd = loaded_partial.cpd("C")
+    assert cpd.variable() == "C"
+    assert cpd.evidence() == ["A"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
@@ -620,14 +617,14 @@ def test_serialization_fitted_conditional_bn(
     loaded_fitted = pickle.loads(cond_gaussian_fit_bytes)
     assert loaded_fitted.fitted()
 
-    cpd_c = loaded_fitted.cpd("c")
-    assert cpd_c.variable() == "c"
-    assert cpd_c.evidence() == ["a"]
+    cpd_c = loaded_fitted.cpd("C")
+    assert cpd_c.variable() == "C"
+    assert cpd_c.evidence() == ["A"]
     assert list(cpd_c.beta) == [1, 2]
     assert cpd_c.variance == 2
 
-    cpd_d = loaded_fitted.cpd("d")
-    assert cpd_d.variable() == "d"
+    cpd_d = loaded_fitted.cpd("D")
+    assert cpd_d.variable() == "D"
     assert cpd_d.evidence() == []
     assert cpd_d.beta == [3]
     assert cpd_d.variance == 1.5
@@ -637,8 +634,8 @@ def test_serialization_fitted_conditional_bn(
     # ####################
     loaded_other = pickle.loads(cond_other_partial_fit_bytes)
     assert not loaded_other.fitted()
-    cpd = loaded_other.cpd("d")
-    assert cpd.variable() == "d"
+    cpd = loaded_other.cpd("D")
+    assert cpd.variable() == "D"
     assert cpd.evidence() == []
     assert cpd.beta == [3]
     assert cpd.variance == 1.5
@@ -649,15 +646,15 @@ def test_serialization_fitted_conditional_bn(
     loaded_other_fitted = pickle.loads(cond_other_fit_bytes)
     assert loaded_other_fitted.fitted()
 
-    cpd_c = loaded_other_fitted.cpd("c")
-    assert cpd_c.variable() == "c"
-    assert cpd_c.evidence() == ["a"]
+    cpd_c = loaded_other_fitted.cpd("C")
+    assert cpd_c.variable() == "C"
+    assert cpd_c.evidence() == ["A"]
     assert cpd_c.fitted()
     assert cpd_c.num_instances() == 100
     assert cpd_c.type() == pbn.CKDEType()
 
-    cpd_d = loaded_other_fitted.cpd("d")
-    assert cpd_d.variable() == "d"
+    cpd_d = loaded_other_fitted.cpd("D")
+    assert cpd_d.variable() == "D"
     assert cpd_d.evidence() == []
     assert cpd_d.fitted()
     assert cpd_d.type() == pbn.DiscreteFactorType()
@@ -673,44 +670,44 @@ def test_serialization_fitted_conditional_bn(
 
 @pytest.fixture
 def dyn_gaussian_bytes():
-    gaussian = pbn.DynamicGaussianNetwork(["a", "b", "c", "d"], 2)
-    gaussian.static_bn().add_arc("a_t_2", "d_t_1")
-    gaussian.transition_bn().add_arc("c_t_2", "b_t_0")
+    gaussian = pbn.DynamicGaussianNetwork(["A", "B", "C", "D"], 2)
+    gaussian.static_bn().add_arc("A_t_2", "D_t_1")
+    gaussian.transition_bn().add_arc("C_t_2", "B_t_0")
     return pickle.dumps(gaussian)
 
 
 @pytest.fixture
 def dyn_spbn_bytes():
-    spbn = pbn.DynamicSemiparametricBN(["a", "b", "c", "d"], 2)
-    spbn.static_bn().add_arc("a_t_2", "d_t_1")
-    spbn.transition_bn().add_arc("c_t_2", "b_t_0")
-    spbn.transition_bn().set_node_type("b_t_0", pbn.CKDEType())
+    spbn = pbn.DynamicSemiparametricBN(["A", "B", "C", "D"], 2)
+    spbn.static_bn().add_arc("A_t_2", "D_t_1")
+    spbn.transition_bn().add_arc("C_t_2", "B_t_0")
+    spbn.transition_bn().set_node_type("B_t_0", pbn.CKDEType())
     return pickle.dumps(spbn)
 
 
 @pytest.fixture
 def dyn_kde_bytes():
-    kde = pbn.DynamicKDENetwork(["a", "b", "c", "d"], 2)
-    kde.static_bn().add_arc("a_t_2", "d_t_1")
-    kde.transition_bn().add_arc("c_t_2", "b_t_0")
+    kde = pbn.DynamicKDENetwork(["A", "B", "C", "D"], 2)
+    kde.static_bn().add_arc("A_t_2", "D_t_1")
+    kde.transition_bn().add_arc("C_t_2", "B_t_0")
     return pickle.dumps(kde)
 
 
 @pytest.fixture
 def dyn_discrete_bytes():
-    discrete = pbn.DynamicDiscreteBN(["a", "b", "c", "d"], 2)
-    discrete.static_bn().add_arc("a_t_2", "d_t_1")
-    discrete.transition_bn().add_arc("c_t_2", "b_t_0")
+    discrete = pbn.DynamicDiscreteBN(["A", "B", "C", "D"], 2)
+    discrete.static_bn().add_arc("A_t_2", "D_t_1")
+    discrete.transition_bn().add_arc("C_t_2", "B_t_0")
     return pickle.dumps(discrete)
 
 
 @pytest.fixture
 def dyn_genericbn_bytes():
     gen = pbn.DynamicBayesianNetwork(
-        MyRestrictedGaussianNetworkType(), ["a", "b", "c", "d"], 2
+        MyRestrictedGaussianNetworkType(), ["A", "B", "C", "D"], 2
     )
-    gen.static_bn().add_arc("a_t_2", "d_t_1")
-    gen.transition_bn().add_arc("a_t_2", "b_t_0")
+    gen.static_bn().add_arc("A_t_2", "D_t_1")
+    gen.transition_bn().add_arc("A_t_2", "B_t_0")
     return pickle.dumps(gen)
 
 
@@ -742,21 +739,21 @@ class DynamicOtherBN(pbn.DynamicBayesianNetwork):
 
 @pytest.fixture
 def dyn_newbn_bytes():
-    new = DynamicNewBN(["a", "b", "c", "d"], 2)
-    new.static_bn().add_arc("a_t_2", "d_t_1")
-    new.transition_bn().add_arc("a_t_2", "b_t_0")
+    new = DynamicNewBN(["A", "B", "C", "D"], 2)
+    new.static_bn().add_arc("A_t_2", "D_t_1")
+    new.transition_bn().add_arc("A_t_2", "B_t_0")
     return pickle.dumps(new)
 
 
 @pytest.fixture
 def dyn_otherbn_bytes():
-    other = DynamicOtherBN(["a", "b", "c", "d"], 2)
-    other.static_bn().add_arc("a_t_2", "d_t_1")
-    other.static_bn().set_node_type("c_t_1", pbn.DiscreteFactorType())
-    other.static_bn().set_node_type("d_t_1", pbn.CKDEType())
+    other = DynamicOtherBN(["A", "B", "C", "D"], 2)
+    other.static_bn().add_arc("A_t_2", "D_t_1")
+    other.static_bn().set_node_type("C_t_1", pbn.DiscreteFactorType())
+    other.static_bn().set_node_type("D_t_1", pbn.CKDEType())
 
-    other.transition_bn().add_arc("a_t_2", "b_t_0")
-    other.transition_bn().set_node_type("d_t_0", pbn.CKDEType())
+    other.transition_bn().add_arc("A_t_2", "B_t_0")
+    other.transition_bn().set_node_type("D_t_0", pbn.CKDEType())
     return pickle.dumps(other)
 
 
@@ -770,64 +767,64 @@ def test_serialization_dbn_model(
     dyn_otherbn_bytes,
 ):
     loaded_g = pickle.loads(dyn_gaussian_bytes)
-    assert set(loaded_g.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_g.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_g.transition_bn().arcs() == [("c_t_2", "b_t_0")]
+    assert set(loaded_g.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_g.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_g.transition_bn().arcs() == [("C_t_2", "B_t_0")]
     assert loaded_g.type() == pbn.GaussianNetworkType()
 
     loaded_s = pickle.loads(dyn_spbn_bytes)
-    assert set(loaded_s.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_s.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_s.transition_bn().arcs() == [("c_t_2", "b_t_0")]
+    assert set(loaded_s.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_s.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_s.transition_bn().arcs() == [("C_t_2", "B_t_0")]
     assert loaded_s.type() == pbn.SemiparametricBNType()
     node_types = {v + "_t_0": pbn.UnknownFactorType() for v in loaded_s.variables()}
-    node_types["b_t_0"] = pbn.CKDEType()
+    node_types["B_t_0"] = pbn.CKDEType()
     assert loaded_s.transition_bn().node_types() == node_types
 
     loaded_k = pickle.loads(dyn_kde_bytes)
-    assert set(loaded_k.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_k.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_k.transition_bn().arcs() == [("c_t_2", "b_t_0")]
+    assert set(loaded_k.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_k.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_k.transition_bn().arcs() == [("C_t_2", "B_t_0")]
     assert loaded_k.type() == pbn.KDENetworkType()
 
     loaded_d = pickle.loads(dyn_discrete_bytes)
-    assert set(loaded_d.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_d.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_d.transition_bn().arcs() == [("c_t_2", "b_t_0")]
+    assert set(loaded_d.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_d.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_d.transition_bn().arcs() == [("C_t_2", "B_t_0")]
     assert loaded_d.type() == pbn.DiscreteBNType()
 
     loaded_gen = pickle.loads(dyn_genericbn_bytes)
-    assert set(loaded_gen.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_gen.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_gen.transition_bn().arcs() == [("a_t_2", "b_t_0")]
+    assert set(loaded_gen.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_gen.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_gen.transition_bn().arcs() == [("A_t_2", "B_t_0")]
     assert loaded_gen.type() == MyRestrictedGaussianNetworkType()
 
     loaded_nn = pickle.loads(dyn_newbn_bytes)
-    assert set(loaded_nn.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_nn.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_nn.transition_bn().arcs() == [("a_t_2", "b_t_0")]
+    assert set(loaded_nn.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_nn.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_nn.transition_bn().arcs() == [("A_t_2", "B_t_0")]
     assert loaded_nn.type() == MyRestrictedGaussianNetworkType()
 
     loaded_other = pickle.loads(dyn_otherbn_bytes)
-    assert set(loaded_other.variables()) == set(["a", "b", "c", "d"])
-    assert loaded_other.static_bn().arcs() == [("a_t_2", "d_t_1")]
-    assert loaded_other.transition_bn().arcs() == [("a_t_2", "b_t_0")]
+    assert set(loaded_other.variables()) == set(["A", "B", "C", "D"])
+    assert loaded_other.static_bn().arcs() == [("A_t_2", "D_t_1")]
+    assert loaded_other.transition_bn().arcs() == [("A_t_2", "B_t_0")]
     assert loaded_other.type() == NonHomogeneousType()
     assert loaded_other.extra_info == "extra"
 
-    assert loaded_other.static_bn().node_type("c_t_1") == pbn.DiscreteFactorType()
-    assert loaded_other.static_bn().node_type("d_t_1") == pbn.CKDEType()
-    assert loaded_other.transition_bn().node_type("d_t_0") == pbn.CKDEType()
+    assert loaded_other.static_bn().node_type("C_t_1") == pbn.DiscreteFactorType()
+    assert loaded_other.static_bn().node_type("D_t_1") == pbn.CKDEType()
+    assert loaded_other.transition_bn().node_type("D_t_0") == pbn.CKDEType()
 
 
 @pytest.fixture
 def dyn_gaussian_partial_fit_bytes():
-    gaussian = pbn.DynamicGaussianNetwork(["a", "b", "c", "d"], 2)
-    gaussian.static_bn().add_arc("a_t_2", "d_t_1")
-    gaussian.transition_bn().add_arc("c_t_2", "b_t_0")
-    lg = LinearGaussianCPD("d_t_1", ["a_t_2"], [1, 2], 2)
+    gaussian = pbn.DynamicGaussianNetwork(["A", "B", "C", "D"], 2)
+    gaussian.static_bn().add_arc("A_t_2", "D_t_1")
+    gaussian.transition_bn().add_arc("C_t_2", "B_t_0")
+    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     gaussian.static_bn().add_cpds([lg])
-    lg = LinearGaussianCPD("b_t_0", ["c_t_2"], [3, 4], 5)
+    lg = LinearGaussianCPD("B_t_0", ["C_t_2"], [3, 4], 5)
     gaussian.transition_bn().add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -835,10 +832,10 @@ def dyn_gaussian_partial_fit_bytes():
 
 @pytest.fixture
 def dyn_gaussian_fit_bytes():
-    gaussian = pbn.DynamicGaussianNetwork(["a", "b", "c", "d"], 2)
-    gaussian.static_bn().add_arc("a_t_2", "d_t_1")
-    gaussian.transition_bn().add_arc("c_t_2", "b_t_0")
-    df = generate_normal_data_indep(1000)
+    gaussian = pbn.DynamicGaussianNetwork(["A", "B", "C", "D"], 2)
+    gaussian.static_bn().add_arc("A_t_2", "D_t_1")
+    gaussian.transition_bn().add_arc("C_t_2", "B_t_0")
+    df = generate_normal_data_independent(1000)
     gaussian.fit(df)
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -846,33 +843,33 @@ def dyn_gaussian_fit_bytes():
 
 @pytest.fixture
 def dyn_other_partial_fit_bytes():
-    variables = ["a", "b", "c", "d"]
+    variables = ["A", "B", "C", "D"]
     static_nodes = [v + "_t_" + str(m) for v in variables for m in range(1, 3)]
     transition_nodes = [v + "_t_0" for v in variables]
 
     other_static = OtherBN(
         static_nodes,
-        [("a_t_2", "d_t_1")],
+        [("A_t_2", "D_t_1")],
         [
-            ("b_t_1", pbn.DiscreteFactorType()),
-            ("c_t_1", pbn.CKDEType()),
-            ("d_t_1", pbn.LinearGaussianCPDType()),
+            ("B_t_1", pbn.DiscreteFactorType()),
+            ("C_t_1", pbn.CKDEType()),
+            ("D_t_1", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("d_t_1", ["a_t_2"], [1, 2], 2)
+    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     other_static.add_cpds([lg])
 
     other_transition = ConditionalOtherBN(
         transition_nodes,
         static_nodes,
-        [("a_t_2", "d_t_0")],
+        [("A_t_2", "D_t_0")],
         [
-            ("b_t_0", pbn.DiscreteFactorType()),
-            ("c_t_0", pbn.CKDEType()),
-            ("d_t_0", pbn.LinearGaussianCPDType()),
+            ("B_t_0", pbn.DiscreteFactorType()),
+            ("C_t_0", pbn.CKDEType()),
+            ("D_t_0", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("d_t_0", ["a_t_2"], [3, 4], 1.5)
+    lg = LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
     other_transition.add_cpds([lg])
 
     assert other_static.type() == other_transition.type()
@@ -884,43 +881,43 @@ def dyn_other_partial_fit_bytes():
 
 @pytest.fixture
 def dyn_other_fit_bytes():
-    variables = ["a", "b", "c", "d"]
+    variables = ["A", "B", "C", "D"]
     static_nodes = [v + "_t_" + str(m) for v in variables for m in range(1, 3)]
     transition_nodes = [v + "_t_0" for v in variables]
 
     other_static = OtherBN(
         static_nodes,
-        [("a_t_2", "d_t_1")],
+        [("A_t_2", "D_t_1")],
         [
-            ("b_t_2", pbn.DiscreteFactorType()),
-            ("b_t_1", pbn.DiscreteFactorType()),
-            ("c_t_1", pbn.CKDEType()),
-            ("d_t_1", pbn.LinearGaussianCPDType()),
+            ("B_t_2", pbn.DiscreteFactorType()),
+            ("B_t_1", pbn.DiscreteFactorType()),
+            ("C_t_1", pbn.CKDEType()),
+            ("D_t_1", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("d_t_1", ["a_t_2"], [1, 2], 2)
+    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     other_static.add_cpds([lg])
 
     other_transition = ConditionalOtherBN(
         transition_nodes,
         static_nodes,
-        [("a_t_2", "d_t_0")],
+        [("A_t_2", "D_t_0")],
         [
-            ("b_t_0", pbn.DiscreteFactorType()),
-            ("c_t_0", pbn.CKDEType()),
-            ("d_t_0", pbn.LinearGaussianCPDType()),
+            ("B_t_0", pbn.DiscreteFactorType()),
+            ("C_t_0", pbn.CKDEType()),
+            ("D_t_0", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("d_t_0", ["a_t_2"], [3, 4], 1.5)
+    lg = LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
     other_transition.add_cpds([lg])
 
     assert other_static.type() == other_transition.type()
 
     dyn_other = DynamicOtherBN(variables, 2, other_static, other_transition)
-    df_continuous = generate_normal_data_indep(1000)
-    df_discrete = generate_discrete_data_dependent(1000)
+    df_continuous = generate_normal_data_independent(1000)
+    df_discrete = generate_discrete_data(1000)
     df = df_continuous
-    df["b"] = df_discrete["B"]
+    df["B"] = df_discrete["B"]
     dyn_other.fit(df)
     dyn_other.include_cpd = True
     return pickle.dumps(dyn_other)
@@ -939,15 +936,15 @@ def test_serialization_fitted_dbn(
     assert not loaded_partial.fitted()
     assert not loaded_partial.static_bn().fitted()
     assert not loaded_partial.transition_bn().fitted()
-    cpd = loaded_partial.static_bn().cpd("d_t_1")
-    assert cpd.variable() == "d_t_1"
-    assert cpd.evidence() == ["a_t_2"]
+    cpd = loaded_partial.static_bn().cpd("D_t_1")
+    assert cpd.variable() == "D_t_1"
+    assert cpd.evidence() == ["A_t_2"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
-    cpd = loaded_partial.transition_bn().cpd("b_t_0")
-    assert cpd.variable() == "b_t_0"
-    assert cpd.evidence() == ["c_t_2"]
+    cpd = loaded_partial.transition_bn().cpd("B_t_0")
+    assert cpd.variable() == "B_t_0"
+    assert cpd.evidence() == ["C_t_2"]
     assert list(cpd.beta) == [3, 4]
     assert cpd.variance == 5
 
@@ -966,25 +963,25 @@ def test_serialization_fitted_dbn(
     assert not loaded_partial.fitted()
     assert not loaded_partial.static_bn().fitted()
     assert not loaded_partial.transition_bn().fitted()
-    assert loaded_partial.static_bn().node_type("b_t_1") == pbn.DiscreteFactorType()
-    assert loaded_partial.static_bn().node_type("c_t_1") == pbn.CKDEType()
-    assert loaded_partial.static_bn().node_type("d_t_1") == pbn.LinearGaussianCPDType()
+    assert loaded_partial.static_bn().node_type("B_t_1") == pbn.DiscreteFactorType()
+    assert loaded_partial.static_bn().node_type("C_t_1") == pbn.CKDEType()
+    assert loaded_partial.static_bn().node_type("D_t_1") == pbn.LinearGaussianCPDType()
 
-    assert loaded_partial.transition_bn().node_type("b_t_0") == pbn.DiscreteFactorType()
-    assert loaded_partial.transition_bn().node_type("c_t_0") == pbn.CKDEType()
+    assert loaded_partial.transition_bn().node_type("B_t_0") == pbn.DiscreteFactorType()
+    assert loaded_partial.transition_bn().node_type("C_t_0") == pbn.CKDEType()
     assert (
-        loaded_partial.transition_bn().node_type("d_t_0") == pbn.LinearGaussianCPDType()
+        loaded_partial.transition_bn().node_type("D_t_0") == pbn.LinearGaussianCPDType()
     )
 
-    cpd = loaded_partial.static_bn().cpd("d_t_1")
-    assert cpd.variable() == "d_t_1"
-    assert cpd.evidence() == ["a_t_2"]
+    cpd = loaded_partial.static_bn().cpd("D_t_1")
+    assert cpd.variable() == "D_t_1"
+    assert cpd.evidence() == ["A_t_2"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
-    cpd = loaded_partial.transition_bn().cpd("d_t_0")
-    assert cpd.variable() == "d_t_0"
-    assert cpd.evidence() == ["a_t_2"]
+    cpd = loaded_partial.transition_bn().cpd("D_t_0")
+    assert cpd.variable() == "D_t_0"
+    assert cpd.evidence() == ["A_t_2"]
     assert list(cpd.beta) == [3, 4]
     assert cpd.variance == 1.5
 
@@ -995,24 +992,24 @@ def test_serialization_fitted_dbn(
     assert loaded_fitted.fitted()
     assert loaded_fitted.static_bn().fitted()
     assert loaded_fitted.transition_bn().fitted()
-    assert loaded_partial.static_bn().node_type("b_t_1") == pbn.DiscreteFactorType()
-    assert loaded_partial.static_bn().node_type("c_t_1") == pbn.CKDEType()
-    assert loaded_partial.static_bn().node_type("d_t_1") == pbn.LinearGaussianCPDType()
+    assert loaded_partial.static_bn().node_type("B_t_1") == pbn.DiscreteFactorType()
+    assert loaded_partial.static_bn().node_type("C_t_1") == pbn.CKDEType()
+    assert loaded_partial.static_bn().node_type("D_t_1") == pbn.LinearGaussianCPDType()
 
-    assert loaded_partial.transition_bn().node_type("b_t_0") == pbn.DiscreteFactorType()
-    assert loaded_partial.transition_bn().node_type("c_t_0") == pbn.CKDEType()
+    assert loaded_partial.transition_bn().node_type("B_t_0") == pbn.DiscreteFactorType()
+    assert loaded_partial.transition_bn().node_type("C_t_0") == pbn.CKDEType()
     assert (
-        loaded_partial.transition_bn().node_type("d_t_0") == pbn.LinearGaussianCPDType()
+        loaded_partial.transition_bn().node_type("D_t_0") == pbn.LinearGaussianCPDType()
     )
 
-    cpd = loaded_partial.static_bn().cpd("d_t_1")
-    assert cpd.variable() == "d_t_1"
-    assert cpd.evidence() == ["a_t_2"]
+    cpd = loaded_partial.static_bn().cpd("D_t_1")
+    assert cpd.variable() == "D_t_1"
+    assert cpd.evidence() == ["A_t_2"]
     assert list(cpd.beta) == [1, 2]
     assert cpd.variance == 2
 
-    cpd = loaded_partial.transition_bn().cpd("d_t_0")
-    assert cpd.variable() == "d_t_0"
-    assert cpd.evidence() == ["a_t_2"]
+    cpd = loaded_partial.transition_bn().cpd("D_t_0")
+    assert cpd.variable() == "D_t_0"
+    assert cpd.evidence() == ["A_t_2"]
     assert list(cpd.beta) == [3, 4]
     assert cpd.variance == 1.5

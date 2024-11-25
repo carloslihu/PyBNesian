@@ -40,22 +40,22 @@ def test_mle_create():
 def test_mle_lg():
     mle = pbn.MLE(pbn.LinearGaussianCPDType())
 
-    p = mle.estimate(df, "a", [])
-    np_beta, np_var = numpy_fit_mle_lg(df, "a", [])
+    p = mle.estimate(df, "A", [])
+    np_beta, np_var = numpy_fit_mle_lg(df, "A", [])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "b", ["a"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "b", ["a"])
+    p = mle.estimate(df, "B", ["A"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "B", ["A"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "c", ["a", "b"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "c", ["a", "b"])
+    p = mle.estimate(df, "C", ["A", "B"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "C", ["A", "B"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "d", ["a", "b", "c"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "d", ["a", "b", "c"])
+    p = mle.estimate(df, "D", ["A", "B", "C"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "D", ["A", "B", "C"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)

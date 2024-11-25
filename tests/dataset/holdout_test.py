@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-from util_test import generate_normal_data
-
 import pybnesian as pbn
+from util_test import generate_normal_data
 
 SIZE = 10000
 
@@ -28,9 +27,9 @@ def test_holdout_disjoint():
     combination = pd.concat([train_df.to_pandas(), test_df.to_pandas()])
 
     assert (
-        df.sort_values("a", axis=0)
+        df.sort_values("A", axis=0)
         .reset_index(drop=True)
-        .equals(combination.sort_values("a", axis=0).reset_index(drop=True))
+        .equals(combination.sort_values("A", axis=0).reset_index(drop=True))
     ), "The combination of train and test dataset is not equal to the original DataFrame."
 
     hold = pbn.HoldOut(df, test_ratio=0.3)
@@ -50,9 +49,9 @@ def test_holdout_disjoint():
     combination = pd.concat([train_df.to_pandas(), test_df.to_pandas()])
 
     assert (
-        df.sort_values("a", axis=0)
+        df.sort_values("A", axis=0)
         .reset_index(drop=True)
-        .equals(combination.sort_values("a", axis=0).reset_index(drop=True))
+        .equals(combination.sort_values("A", axis=0).reset_index(drop=True))
     ), "The combination of train and test dataset is not equal to the original DataFrame."
 
 
@@ -89,10 +88,10 @@ def test_holdout_null():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     non_null = df_null.dropna()
     hold = pbn.HoldOut(df_null)
@@ -112,9 +111,9 @@ def test_holdout_null():
     combination = pd.concat([train_df.to_pandas(), test_df.to_pandas()])
 
     assert (
-        combination.sort_values("a", axis=0)
+        combination.sort_values("A", axis=0)
         .reset_index(drop=True)
-        .equals(non_null.sort_values("a", axis=0).reset_index(drop=True))
+        .equals(non_null.sort_values("A", axis=0).reset_index(drop=True))
     ), "The combination of train and test dataset is not equal to the original DataFrame."
 
     hold_null = pbn.HoldOut(df_null, include_null=True)
@@ -132,7 +131,7 @@ def test_holdout_null():
     combination = pd.concat([train_df.to_pandas(), test_df.to_pandas()])
 
     assert (
-        combination.sort_values(["a", "b", "c", "d"], axis=0)
+        combination.sort_values(["A", "B", "C", "D"], axis=0)
         .reset_index(drop=True)
-        .equals(df.sort_values(["a", "b", "c", "d"], axis=0).reset_index(drop=True))
+        .equals(df.sort_values(["A", "B", "C", "D"], axis=0).reset_index(drop=True))
     ), "The combination of train and test dataset is not equal to the original DataFrame."

@@ -1,7 +1,6 @@
+import pybnesian as pbn
 import pytest
 from util_test import generate_normal_data
-
-import pybnesian as pbn
 
 SIZE = 10000
 df = generate_normal_data(SIZE)
@@ -20,7 +19,7 @@ def test_create():
 
 
 def test_find_max():
-    spbn = pbn.SemiparametricBN(["a", "b", "c", "d"])
+    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"])
     cv = pbn.CVLikelihood(df)
     arcs = pbn.ArcOperatorSet()
     node_type = pbn.ChangeNodeTypeSet()

@@ -1,109 +1,108 @@
-import pytest
-
 import pybnesian as pbn
+import pytest
 
 
 def test_create():
-    o = pbn.AddArc("a", "b", 1)
-    assert o.source() == "a"
-    assert o.target() == "b"
+    o = pbn.AddArc("A", "B", 1)
+    assert o.source() == "A"
+    assert o.target() == "B"
     assert o.delta() == 1
 
-    o = pbn.RemoveArc("a", "b", 2)
-    assert o.source() == "a"
-    assert o.target() == "b"
+    o = pbn.RemoveArc("A", "B", 2)
+    assert o.source() == "A"
+    assert o.target() == "B"
     assert o.delta() == 2
 
-    o = pbn.FlipArc("a", "b", 3)
-    assert o.source() == "a"
-    assert o.target() == "b"
+    o = pbn.FlipArc("A", "B", 3)
+    assert o.source() == "A"
+    assert o.target() == "B"
     assert o.delta() == 3
 
-    o = pbn.ChangeNodeType("a", pbn.CKDEType(), 4)
-    assert o.node() == "a"
+    o = pbn.ChangeNodeType("A", pbn.CKDEType(), 4)
+    assert o.node() == "A"
     assert o.node_type() == pbn.CKDEType()
     assert o.delta() == 4
 
 
 def test_apply():
-    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
     assert gbn.num_arcs() == 0
-    assert not gbn.has_arc("a", "b")
+    assert not gbn.has_arc("A", "B")
 
-    o = pbn.AddArc("a", "b", 1)
+    o = pbn.AddArc("A", "B", 1)
     o.apply(gbn)
     assert gbn.num_arcs() == 1
-    assert gbn.has_arc("a", "b")
+    assert gbn.has_arc("A", "B")
 
-    o = pbn.FlipArc("a", "b", 1)
+    o = pbn.FlipArc("A", "B", 1)
     o.apply(gbn)
     assert gbn.num_arcs() == 1
-    assert not gbn.has_arc("a", "b")
-    assert gbn.has_arc("b", "a")
+    assert not gbn.has_arc("A", "B")
+    assert gbn.has_arc("B", "A")
 
-    o = pbn.RemoveArc("b", "a", 1)
+    o = pbn.RemoveArc("B", "A", 1)
     o.apply(gbn)
     assert gbn.num_arcs() == 0
-    assert not gbn.has_arc("b", "a")
+    assert not gbn.has_arc("B", "A")
 
-    o = pbn.ChangeNodeType("a", pbn.CKDEType(), 1)
+    o = pbn.ChangeNodeType("A", pbn.CKDEType(), 1)
     with pytest.raises(ValueError) as ex:
         o.apply(gbn)
     assert "Wrong factor type" in str(ex.value)
 
-    spbn = pbn.SemiparametricBN(["a", "b", "c", "d"])
+    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"])
     assert spbn.num_arcs() == 0
 
-    o = pbn.ChangeNodeType("a", pbn.CKDEType(), 1)
-    assert spbn.node_type("a") == pbn.UnknownFactorType()
+    o = pbn.ChangeNodeType("A", pbn.CKDEType(), 1)
+    assert spbn.node_type("A") == pbn.UnknownFactorType()
     o.apply(spbn)
-    assert spbn.node_type("a") == pbn.CKDEType()
+    assert spbn.node_type("A") == pbn.CKDEType()
 
-    assert not spbn.has_arc("a", "b")
-    o = pbn.AddArc("a", "b", 1)
-    o.apply(spbn)
-    assert spbn.num_arcs() == 1
-    assert spbn.has_arc("a", "b")
-
-    o = pbn.FlipArc("a", "b", 1)
+    assert not spbn.has_arc("A", "B")
+    o = pbn.AddArc("A", "B", 1)
     o.apply(spbn)
     assert spbn.num_arcs() == 1
-    assert not spbn.has_arc("a", "b")
-    assert spbn.has_arc("b", "a")
+    assert spbn.has_arc("A", "B")
 
-    o = pbn.RemoveArc("b", "a", 1)
+    o = pbn.FlipArc("A", "B", 1)
+    o.apply(spbn)
+    assert spbn.num_arcs() == 1
+    assert not spbn.has_arc("A", "B")
+    assert spbn.has_arc("B", "A")
+
+    o = pbn.RemoveArc("B", "A", 1)
     o.apply(spbn)
     assert spbn.num_arcs() == 0
-    assert not spbn.has_arc("b", "a")
+    assert not spbn.has_arc("B", "A")
 
 
 def test_opposite():
-    bn = pbn.SemiparametricBN(["a", "b"])
-    o = pbn.AddArc("a", "b", 1)
+    bn = pbn.SemiparametricBN(["A", "B"])
+    o = pbn.AddArc("A", "B", 1)
     oppo = o.opposite(bn)
-    assert oppo.source() == "a"
-    assert oppo.target() == "b"
+    assert oppo.source() == "A"
+    assert oppo.target() == "B"
     assert oppo.delta() == -1
     assert type(oppo) == pbn.RemoveArc
 
-    o = pbn.RemoveArc("a", "b", 1)
+    o = pbn.RemoveArc("A", "B", 1)
     oppo = o.opposite(bn)
-    assert oppo.source() == "a"
-    assert oppo.target() == "b"
+    assert oppo.source() == "A"
+    assert oppo.target() == "B"
     assert oppo.delta() == -1
     assert type(oppo) == pbn.AddArc
 
-    o = pbn.FlipArc("a", "b", 1)
+    o = pbn.FlipArc("A", "B", 1)
     oppo = o.opposite(bn)
-    assert oppo.source() == "b"
-    assert oppo.target() == "a"
+    assert oppo.source() == "B"
+    assert oppo.target() == "A"
     assert oppo.delta() == -1
     assert type(oppo) == pbn.FlipArc
 
-    bn.set_node_type("a", pbn.LinearGaussianCPDType())
-    o = pbn.ChangeNodeType("a", pbn.CKDEType(), 1)
+    bn.set_node_type("A", pbn.LinearGaussianCPDType())
+    o = pbn.ChangeNodeType("A", pbn.CKDEType(), 1)
     oppo = o.opposite(bn)
-    assert oppo.node() == "a"
+    assert oppo.node() == "A"
     assert oppo.node_type() == pbn.LinearGaussianCPDType()
     assert oppo.delta() == -1
     assert type(oppo) == pbn.ChangeNodeType

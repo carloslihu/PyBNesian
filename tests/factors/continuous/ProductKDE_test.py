@@ -1,11 +1,10 @@
 import numpy as np
 import pyarrow as pa
+import pybnesian as pbn
 import pytest
+from pybnesian import BandwidthSelector
 from scipy.stats import gaussian_kde
 from util_test import generate_normal_data
-
-import pybnesian as pbn
-from pybnesian import BandwidthSelector
 
 SIZE = 500
 df = generate_normal_data(SIZE, seed=0)
@@ -13,7 +12,7 @@ df_float = df.astype("float32")
 
 
 def test_check_type():
-    cpd = pbn.ProductKDE(["a"])
+    cpd = pbn.ProductKDE(["A"])
     cpd.fit(df)
     with pytest.raises(ValueError) as ex:
         cpd.logl(df_float)
@@ -32,7 +31,7 @@ def test_check_type():
 
 
 def test_productkde_variables():
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         cpd = pbn.ProductKDE(variables)
         assert cpd.variables() == variables
 
@@ -63,7 +62,7 @@ def py_scott_bandwidth(df, variables):
 
 def test_productkde_bandwidth():
     # for variables in [['a'], ['b', 'a'], ['c', 'a', 'b'], ['d', 'a', 'b', 'c']]:
-    for variables in [["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["C", "A", "B"], ["D", "A", "B", "C"]]:
         for instances in [50, 150, 500]:
             cpd = pbn.ProductKDE(variables)
             cpd.fit(df.iloc[:instances])
@@ -95,7 +94,7 @@ def test_productkde_bandwidth():
                 )
             ), "Wrong bandwidth computed with Scott's rule."
 
-    cpd = pbn.ProductKDE(["a"])
+    cpd = pbn.ProductKDE(["A"])
     cpd.fit(df)
     cpd.bandwidth = [1]
     assert cpd.bandwidth == np.asarray([1]), "Could not change bandwidth."
@@ -114,14 +113,14 @@ class UnitaryBandwidth(BandwidthSelector):
 
 
 def test_productkde_new_bandwidth():
-    kde = pbn.ProductKDE(["a"], UnitaryBandwidth())
+    kde = pbn.ProductKDE(["A"], UnitaryBandwidth())
     kde.fit(df)
     assert kde.bandwidth == np.ones((1,))
 
     kde.fit(df_float)
     assert kde.bandwidth == np.ones((1,))
 
-    kde = pbn.ProductKDE(["a", "b", "c", "d"], UnitaryBandwidth())
+    kde = pbn.ProductKDE(["A", "B", "C", "D"], UnitaryBandwidth())
     kde.fit(df)
     assert np.all(kde.bandwidth == np.ones((4,)))
 
@@ -130,7 +129,7 @@ def test_productkde_new_bandwidth():
 
 
 def test_productkde_data_type():
-    k = pbn.ProductKDE(["a"])
+    k = pbn.ProductKDE(["A"])
 
     with pytest.raises(ValueError) as ex:
         k.data_type()
@@ -168,7 +167,7 @@ def test_productkde_fit():
                 )
             ), "Wrong bandwidth."
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         for instances in [50, 150, 500]:
             _test_productkde_fit_iter(variables, df, instances)
             _test_productkde_fit_iter(variables, df_float, instances)
@@ -218,18 +217,18 @@ def test_productkde_fit_null():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     df_null_float = df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         for instances in [50, 150, 500]:
             _test_productkde_fit_null_iter(variables, df_null, instances)
             _test_productkde_fit_null_iter(variables, df_null_float, instances)
@@ -294,21 +293,21 @@ def test_productkde_logl():
     test_df = generate_normal_data(50, seed=1)
     test_df_float = test_df.astype("float32")
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         _test_productkde_logl_iter(variables, df, test_df)
         _test_productkde_logl_iter(variables, df_float, test_df_float)
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.logl(test_df), cpd2.logl(test_df))
     ), "Order of evidence changes logl() result."
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df_float)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.logl(test_df_float), cpd2.logl(test_df_float), atol=0.0005)
@@ -367,32 +366,32 @@ def test_productkde_logl_null():
     d_null = np.random.randint(0, TEST_SIZE, size=10)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     df_null_float = test_df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         _test_productkde_logl_null_iter(variables, df, df_null)
         _test_productkde_logl_null_iter(variables, df_float, df_null_float)
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.logl(df_null), cpd2.logl(df_null), equal_nan=True)
     ), "Order of evidence changes logl() result."
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df_float)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(
@@ -450,21 +449,21 @@ def test_productkde_slogl():
     test_df = generate_normal_data(50, seed=1)
     test_df_float = test_df.astype("float32")
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         _test_productkde_slogl_iter(variables, df, test_df)
         _test_productkde_slogl_iter(variables, df_float, test_df_float)
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.slogl(test_df), cpd2.slogl(test_df))
     ), "Order of evidence changes slogl() result."
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df_float)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.slogl(test_df_float), cpd2.slogl(test_df_float), atol=0.0005)
@@ -526,32 +525,32 @@ def test_productkde_slogl_null():
     d_null = np.random.randint(0, TEST_SIZE, size=10)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     df_null_float = test_df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
 
-    for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
+    for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         _test_productkde_slogl_null_iter(variables, df, df_null)
         _test_productkde_slogl_null_iter(variables, df_float, df_null_float)
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.slogl(df_null), cpd2.slogl(df_null))
     ), "Order of evidence changes slogl() result."
 
-    cpd = pbn.ProductKDE(["d", "a", "b", "c"])
+    cpd = pbn.ProductKDE(["D", "A", "B", "C"])
     cpd.fit(df_float)
-    cpd2 = pbn.ProductKDE(["a", "c", "d", "b"])
+    cpd2 = pbn.ProductKDE(["A", "C", "D", "B"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.slogl(df_null_float), cpd2.slogl(df_null_float), atol=0.0005)

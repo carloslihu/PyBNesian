@@ -2,27 +2,26 @@ import pickle
 
 import numpy as np
 import pandas as pd
-import pytest
-
 import pybnesian as pbn
+import pytest
 from pybnesian import CKDE, DiscreteFactor, Factor, FactorType, LinearGaussianCPD
 
 
 @pytest.fixture
 def lg_bytes():
-    lg = LinearGaussianCPD("c", ["a", "b"])
+    lg = LinearGaussianCPD("C", ["A", "B"])
     return pickle.dumps(lg)
 
 
 @pytest.fixture
 def ckde_bytes():
-    ckde = CKDE("c", ["a", "b"])
+    ckde = CKDE("C", ["A", "B"])
     return pickle.dumps(ckde)
 
 
 @pytest.fixture
 def discrete_bytes():
-    discrete = DiscreteFactor("c", ["a", "b"])
+    discrete = DiscreteFactor("C", ["A", "B"])
     return pickle.dumps(discrete)
 
 
@@ -102,13 +101,13 @@ class NewFactorBis(Factor):
 
 @pytest.fixture
 def new_bytes():
-    n = NewFactor("c", ["a", "b"])
+    n = NewFactor("C", ["A", "B"])
     return pickle.dumps(n)
 
 
 @pytest.fixture
 def newbis_bytes():
-    n = NewFactorBis("c", ["a", "b"])
+    n = NewFactorBis("C", ["A", "B"])
     return pickle.dumps(n)
 
 
@@ -116,44 +115,44 @@ def test_serialization_unfitted_factor(
     lg_bytes, ckde_bytes, discrete_bytes, new_bytes, newbis_bytes
 ):
     loaded_lg = pickle.loads(lg_bytes)
-    assert loaded_lg.variable() == "c"
-    assert set(loaded_lg.evidence()) == set(["a", "b"])
+    assert loaded_lg.variable() == "C"
+    assert set(loaded_lg.evidence()) == set(["A", "B"])
     assert not loaded_lg.fitted()
     assert loaded_lg.type() == pbn.LinearGaussianCPDType()
 
     loaded_ckde = pickle.loads(ckde_bytes)
-    assert loaded_ckde.variable() == "c"
-    assert set(loaded_ckde.evidence()) == set(["a", "b"])
+    assert loaded_ckde.variable() == "C"
+    assert set(loaded_ckde.evidence()) == set(["A", "B"])
     assert not loaded_ckde.fitted()
     assert loaded_ckde.type() == pbn.CKDEType()
 
     loaded_discrete = pickle.loads(discrete_bytes)
-    assert loaded_discrete.variable() == "c"
-    assert set(loaded_discrete.evidence()) == set(["a", "b"])
+    assert loaded_discrete.variable() == "C"
+    assert set(loaded_discrete.evidence()) == set(["A", "B"])
     assert not loaded_discrete.fitted()
     assert loaded_discrete.type() == pbn.DiscreteFactorType()
 
     loaded_new = pickle.loads(new_bytes)
-    assert loaded_new.variable() == "c"
-    assert set(loaded_new.evidence()) == set(["a", "b"])
+    assert loaded_new.variable() == "C"
+    assert set(loaded_new.evidence()) == set(["A", "B"])
     assert not loaded_new.fitted()
     assert type(loaded_new.type()) == NewType
-    nn = NewFactor("a", [])
+    nn = NewFactor("A", [])
     assert loaded_new.type() == nn.type()
 
     from pybnesian import GaussianNetwork
 
-    dummy_network = GaussianNetwork(["a", "b", "c", "d"])
-    assert type(loaded_new.type().new_factor(dummy_network, "a", [])) == NewFactor
+    dummy_network = GaussianNetwork(["A", "B", "C", "D"])
+    assert type(loaded_new.type().new_factor(dummy_network, "A", [])) == NewFactor
 
     loaded_newbis = pickle.loads(newbis_bytes)
-    assert loaded_newbis.variable() == "c"
-    assert set(loaded_newbis.evidence()) == set(["a", "b"])
+    assert loaded_newbis.variable() == "C"
+    assert set(loaded_newbis.evidence()) == set(["A", "B"])
     assert not loaded_newbis.fitted()
     assert type(loaded_newbis.type()) == NewType
-    nnbis = NewFactorBis("a", [])
+    nnbis = NewFactorBis("A", [])
     assert loaded_newbis.type() == nnbis.type()
-    assert type(loaded_newbis.type().new_factor(dummy_network, "a", [])) == NewFactorBis
+    assert type(loaded_newbis.type().new_factor(dummy_network, "A", [])) == NewFactorBis
 
     assert loaded_lg.type() != loaded_ckde.type()
     assert loaded_lg.type() != loaded_discrete.type()
@@ -166,7 +165,7 @@ def test_serialization_unfitted_factor(
 
 @pytest.fixture
 def lg_fitted_bytes():
-    lg = LinearGaussianCPD("c", ["a", "b"], [1, 2, 3], 0.5)
+    lg = LinearGaussianCPD("C", ["A", "B"], [1, 2, 3], 0.5)
     return pickle.dumps(lg)
 
 
@@ -174,22 +173,22 @@ def lg_fitted_bytes():
 def ckde_fitted_bytes():
     np.random.seed(1)
     data = pd.DataFrame(
-        {"a": np.random.rand(10), "b": np.random.rand(10), "c": np.random.rand(10)}
+        {"A": np.random.rand(10), "B": np.random.rand(10), "C": np.random.rand(10)}
     ).astype(float)
-    ckde = CKDE("c", ["a", "b"])
+    ckde = CKDE("C", ["A", "B"])
     ckde.fit(data)
     return pickle.dumps(ckde)
 
 
 @pytest.fixture
 def discrete_fitted_bytes():
-    discrete = DiscreteFactor("c", ["a", "b"])
+    discrete = DiscreteFactor("C", ["A", "B"])
 
     data = pd.DataFrame(
         {
-            "a": ["a1", "a2", "a1", "a2", "a2", "a2", "a2", "a2"],
-            "b": ["b1", "b1", "b1", "b1", "b1", "b2", "b1", "b2"],
-            "c": ["c1", "c1", "c1", "c1", "c2", "c2", "c2", "c2"],
+            "A": ["A1", "A2", "A1", "A2", "A2", "A2", "A2", "A2"],
+            "B": ["B1", "B1", "B1", "B1", "B1", "B2", "B1", "B2"],
+            "C": ["C1", "C1", "C1", "C1", "C2", "C2", "C2", "C2"],
         },
         dtype="category",
     )
@@ -199,14 +198,14 @@ def discrete_fitted_bytes():
 
 @pytest.fixture
 def new_fitted_bytes():
-    n = NewFactor("c", ["a", "b"])
+    n = NewFactor("C", ["A", "B"])
     n.fit(None)
     return pickle.dumps(n)
 
 
 @pytest.fixture
 def newbis_fitted_bytes():
-    n = NewFactorBis("c", ["a", "b"])
+    n = NewFactorBis("C", ["A", "B"])
     n.fit(None)
     return pickle.dumps(n)
 
@@ -219,35 +218,35 @@ def test_serialization_fitted_factor(
     newbis_fitted_bytes,
 ):
     loaded_lg = pickle.loads(lg_fitted_bytes)
-    assert loaded_lg.variable() == "c"
-    assert set(loaded_lg.evidence()) == set(["a", "b"])
+    assert loaded_lg.variable() == "C"
+    assert set(loaded_lg.evidence()) == set(["A", "B"])
     assert loaded_lg.fitted()
     assert list(loaded_lg.beta) == [1, 2, 3]
     assert loaded_lg.variance == 0.5
 
     loaded_ckde = pickle.loads(ckde_fitted_bytes)
-    assert loaded_ckde.variable() == "c"
-    assert set(loaded_ckde.evidence()) == set(["a", "b"])
+    assert loaded_ckde.variable() == "C"
+    assert set(loaded_ckde.evidence()) == set(["A", "B"])
     assert loaded_ckde.fitted()
     assert loaded_ckde.type() == pbn.CKDEType()
     assert loaded_ckde.num_instances() == 10
     tr = loaded_ckde.kde_joint().dataset().to_pandas()
     np.random.seed(1)
-    assert np.all(tr["a"] == np.random.rand(10))
-    assert np.all(tr["b"] == np.random.rand(10))
-    assert np.all(tr["c"] == np.random.rand(10))
+    assert np.all(tr["A"] == np.random.rand(10))
+    assert np.all(tr["B"] == np.random.rand(10))
+    assert np.all(tr["C"] == np.random.rand(10))
 
     loaded_discrete = pickle.loads(discrete_fitted_bytes)
-    assert loaded_discrete.variable() == "c"
-    assert set(loaded_discrete.evidence()) == set(["a", "b"])
+    assert loaded_discrete.variable() == "C"
+    assert set(loaded_discrete.evidence()) == set(["A", "B"])
     assert loaded_discrete.fitted()
     assert loaded_discrete.type() == pbn.DiscreteFactorType()
 
     test = pd.DataFrame(
         {
-            "a": ["a1", "a2", "a1", "a2", "a1", "a2", "a1", "a2"],
-            "b": ["b1", "b1", "b2", "b2", "b1", "b1", "b2", "b2"],
-            "c": ["c1", "c1", "c1", "c1", "c2", "c2", "c2", "c2"],
+            "A": ["A1", "A2", "A1", "A2", "A1", "A2", "A1", "A2"],
+            "B": ["B1", "B1", "B2", "B2", "B1", "B1", "B2", "B2"],
+            "C": ["C1", "C1", "C1", "C1", "C2", "C2", "C2", "C2"],
         },
         dtype="category",
     )
@@ -255,20 +254,20 @@ def test_serialization_fitted_factor(
     assert list(np.exp(ll)) == [1, 0.5, 0.5, 0, 0, 0.5, 0.5, 1]
 
     loaded_new = pickle.loads(new_fitted_bytes)
-    assert loaded_new.variable() == "c"
-    assert set(loaded_new.evidence()) == set(["a", "b"])
+    assert loaded_new.variable() == "C"
+    assert set(loaded_new.evidence()) == set(["A", "B"])
     assert loaded_new.fitted()
     assert type(loaded_new.type()) == NewType
-    nn = NewFactor("a", [])
+    nn = NewFactor("A", [])
     assert loaded_new.type() == nn.type()
     assert loaded_new.some_fit_data == "fitted"
 
     loaded_newbis = pickle.loads(newbis_fitted_bytes)
-    assert loaded_newbis.variable() == "c"
-    assert set(loaded_newbis.evidence()) == set(["a", "b"])
+    assert loaded_newbis.variable() == "C"
+    assert set(loaded_newbis.evidence()) == set(["A", "B"])
     assert loaded_newbis.fitted()
     assert isinstance(loaded_newbis.type(), NewType)
-    nn = NewFactorBis("a", [])
+    nn = NewFactorBis("A", [])
     assert loaded_newbis.type() == nn.type()
     assert loaded_newbis.some_fit_data == "fitted"
     assert isinstance(loaded_newbis.type(), type(loaded_new.type()))

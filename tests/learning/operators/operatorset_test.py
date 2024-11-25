@@ -1,15 +1,14 @@
 import numpy as np
+import pybnesian as pbn
 import pytest
 from util_test import generate_normal_data
-
-import pybnesian as pbn
 
 SIZE = 10000
 df = generate_normal_data(SIZE)
 
 
 def test_create_change_node():
-    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
 
     cv = pbn.CVLikelihood(df)
 
@@ -21,24 +20,24 @@ def test_create_change_node():
 
 
 def test_lists():
-    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
     bic = pbn.BIC(df)
     arc_op = pbn.ArcOperatorSet()
 
-    arc_op.set_arc_blacklist([("b", "a")])
-    arc_op.set_arc_whitelist([("b", "c")])
+    arc_op.set_arc_blacklist([("B", "A")])
+    arc_op.set_arc_whitelist([("B", "C")])
     arc_op.set_max_indegree(3)
-    arc_op.set_type_whitelist([("a", pbn.LinearGaussianCPDType())])
+    arc_op.set_type_whitelist([("A", pbn.LinearGaussianCPDType())])
 
     arc_op.cache_scores(gbn, bic)
 
-    arc_op.set_arc_blacklist([("e", "a")])
+    arc_op.set_arc_blacklist([("E", "A")])
 
     with pytest.raises(ValueError) as ex:
         arc_op.cache_scores(gbn, bic)
     assert "not present in the graph" in str(ex.value)
 
-    arc_op.set_arc_whitelist([("e", "a")])
+    arc_op.set_arc_whitelist([("E", "A")])
 
     with pytest.raises(ValueError) as ex:
         arc_op.cache_scores(gbn, bic)
@@ -46,7 +45,7 @@ def test_lists():
 
 
 def test_check_max_score():
-    gbn = pbn.GaussianNetwork(["c", "d"])
+    gbn = pbn.GaussianNetwork(["C", "D"])
 
     bic = pbn.BIC(df)
     arc_op = pbn.ArcOperatorSet()
@@ -55,7 +54,7 @@ def test_check_max_score():
     op = arc_op.find_max(gbn)
 
     assert np.isclose(
-        op.delta(), (bic.local_score(gbn, "d", ["c"]) - bic.local_score(gbn, "d"))
+        op.delta(), (bic.local_score(gbn, "D", ["C"]) - bic.local_score(gbn, "D"))
     )
 
     # BIC is decomposable so the best operation is the arc in reverse direction.
@@ -70,10 +69,10 @@ def test_check_max_score():
 
 
 def test_nomax():
-    gbn = pbn.GaussianNetwork(["a", "b"])
+    gbn = pbn.GaussianNetwork(["A", "B"])
 
     bic = pbn.BIC(df)
-    arc_op = pbn.ArcOperatorSet(whitelist=[("a", "b")])
+    arc_op = pbn.ArcOperatorSet(whitelist=[("A", "B")])
     arc_op.cache_scores(gbn, bic)
 
     op = arc_op.find_max(gbn)

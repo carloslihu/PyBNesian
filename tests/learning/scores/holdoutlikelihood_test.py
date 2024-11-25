@@ -1,10 +1,9 @@
 import numpy as np
 import pandas as pd
+import pybnesian as pbn
 import pytest
 from scipy.stats import gaussian_kde, norm
 from util_test import generate_normal_data
-
-import pybnesian as pbn
 
 SIZE = 1000
 df = generate_normal_data(SIZE)
@@ -84,65 +83,65 @@ def test_holdout_create():
 
 def test_holdout_local_score_gbn():
     gbn = pbn.GaussianNetwork(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
     hl = pbn.HoldoutLikelihood(df, 0.2, seed)
 
     assert np.isclose(
-        hl.local_score(gbn, "a", []),
+        hl.local_score(gbn, "A", []),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "a",
+            "A",
             [],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "b", ["a"]),
+        hl.local_score(gbn, "B", ["A"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "b",
-            ["a"],
+            "B",
+            ["A"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "c", ["a", "b"]),
+        hl.local_score(gbn, "C", ["A", "B"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "c",
-            ["a", "b"],
+            "C",
+            ["A", "B"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "d", ["a", "b", "c"]),
+        hl.local_score(gbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["a", "b", "c"],
+            "D",
+            ["A", "B", "C"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "d", ["a", "b", "c"]),
-        hl.local_score(gbn, "d", ["b", "c", "a"]),
+        hl.local_score(gbn, "D", ["A", "B", "C"]),
+        hl.local_score(gbn, "D", ["B", "C", "A"]),
     )
 
-    assert hl.local_score(gbn, "a") == hl.local_score(gbn, "a", gbn.parents("a"))
-    assert hl.local_score(gbn, "b") == hl.local_score(gbn, "b", gbn.parents("b"))
-    assert hl.local_score(gbn, "c") == hl.local_score(gbn, "c", gbn.parents("c"))
-    assert hl.local_score(gbn, "d") == hl.local_score(gbn, "d", gbn.parents("d"))
+    assert hl.local_score(gbn, "A") == hl.local_score(gbn, "A", gbn.parents("A"))
+    assert hl.local_score(gbn, "B") == hl.local_score(gbn, "B", gbn.parents("B"))
+    assert hl.local_score(gbn, "C") == hl.local_score(gbn, "C", gbn.parents("C"))
+    assert hl.local_score(gbn, "D") == hl.local_score(gbn, "D", gbn.parents("D"))
 
 
 def test_holdout_local_score_gbn_null():
     gbn = pbn.GaussianNetwork(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
     np.random.seed(0)
@@ -152,133 +151,133 @@ def test_holdout_local_score_gbn_null():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     hl = pbn.HoldoutLikelihood(df_null, 0.2, seed)
 
     assert np.isclose(
-        hl.local_score(gbn, "a", []),
+        hl.local_score(gbn, "A", []),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "a",
+            "A",
             [],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "b", ["a"]),
+        hl.local_score(gbn, "B", ["A"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "b",
-            ["a"],
+            "B",
+            ["A"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "c", ["a", "b"]),
+        hl.local_score(gbn, "C", ["A", "B"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "c",
-            ["a", "b"],
+            "C",
+            ["A", "B"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "d", ["a", "b", "c"]),
+        hl.local_score(gbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["a", "b", "c"],
+            "D",
+            ["A", "B", "C"],
         ),
     )
     assert np.isclose(
-        hl.local_score(gbn, "d", ["a", "b", "c"]),
-        hl.local_score(gbn, "d", ["b", "c", "a"]),
+        hl.local_score(gbn, "D", ["A", "B", "C"]),
+        hl.local_score(gbn, "D", ["B", "C", "A"]),
     )
 
-    assert hl.local_score(gbn, "a") == hl.local_score(gbn, "a", gbn.parents("a"))
-    assert hl.local_score(gbn, "b") == hl.local_score(gbn, "b", gbn.parents("b"))
-    assert hl.local_score(gbn, "c") == hl.local_score(gbn, "c", gbn.parents("c"))
-    assert hl.local_score(gbn, "d") == hl.local_score(gbn, "d", gbn.parents("d"))
+    assert hl.local_score(gbn, "A") == hl.local_score(gbn, "A", gbn.parents("A"))
+    assert hl.local_score(gbn, "B") == hl.local_score(gbn, "B", gbn.parents("B"))
+    assert hl.local_score(gbn, "C") == hl.local_score(gbn, "C", gbn.parents("C"))
+    assert hl.local_score(gbn, "D") == hl.local_score(gbn, "D", gbn.parents("D"))
 
 
 def test_holdout_local_score_spbn():
     spbn = pbn.SemiparametricBN(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
-        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
+        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
     )
 
     hl = pbn.HoldoutLikelihood(df, 0.2, seed)
 
     assert np.isclose(
-        hl.local_score(spbn, "a", []),
+        hl.local_score(spbn, "A", []),
         numpy_local_score(
             pbn.CKDEType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "a",
+            "A",
             [],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "b", ["a"]),
+        hl.local_score(spbn, "B", ["A"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "b",
-            ["a"],
+            "B",
+            ["A"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "c", ["a", "b"]),
+        hl.local_score(spbn, "C", ["A", "B"]),
         numpy_local_score(
             pbn.CKDEType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "c",
-            ["a", "b"],
+            "C",
+            ["A", "B"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "d", ["a", "b", "c"]),
+        hl.local_score(spbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["a", "b", "c"],
+            "D",
+            ["A", "B", "C"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "d", ["a", "b", "c"]),
+        hl.local_score(spbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["b", "c", "a"],
+            "D",
+            ["B", "C", "A"],
         ),
     )
 
-    assert hl.local_score(spbn, "a") == hl.local_score(spbn, "a", spbn.parents("a"))
-    assert hl.local_score(spbn, "b") == hl.local_score(spbn, "b", spbn.parents("b"))
-    assert hl.local_score(spbn, "c") == hl.local_score(spbn, "c", spbn.parents("c"))
-    assert hl.local_score(spbn, "d") == hl.local_score(spbn, "d", spbn.parents("d"))
+    assert hl.local_score(spbn, "A") == hl.local_score(spbn, "A", spbn.parents("A"))
+    assert hl.local_score(spbn, "B") == hl.local_score(spbn, "B", spbn.parents("B"))
+    assert hl.local_score(spbn, "C") == hl.local_score(spbn, "C", spbn.parents("C"))
+    assert hl.local_score(spbn, "D") == hl.local_score(spbn, "D", spbn.parents("D"))
 
 
 def test_holdout_local_score_null_spbn():
     spbn = pbn.SemiparametricBN(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
-        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
+        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
     )
 
     np.random.seed(0)
@@ -288,73 +287,73 @@ def test_holdout_local_score_null_spbn():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "a"] = np.nan
-    df_null.loc[df_null.index[b_null], "b"] = np.nan
-    df_null.loc[df_null.index[c_null], "c"] = np.nan
-    df_null.loc[df_null.index[d_null], "d"] = np.nan
+    df_null.loc[df_null.index[a_null], "A"] = np.nan
+    df_null.loc[df_null.index[b_null], "B"] = np.nan
+    df_null.loc[df_null.index[c_null], "C"] = np.nan
+    df_null.loc[df_null.index[d_null], "D"] = np.nan
 
     hl = pbn.HoldoutLikelihood(df_null, 0.2, seed)
 
     assert np.isclose(
-        hl.local_score(spbn, "a", []),
+        hl.local_score(spbn, "A", []),
         numpy_local_score(
             pbn.CKDEType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "a",
+            "A",
             [],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "b", ["a"]),
+        hl.local_score(spbn, "B", ["A"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "b",
-            ["a"],
+            "B",
+            ["A"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "c", ["a", "b"]),
+        hl.local_score(spbn, "C", ["A", "B"]),
         numpy_local_score(
             pbn.CKDEType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "c",
-            ["a", "b"],
+            "C",
+            ["A", "B"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "d", ["a", "b", "c"]),
+        hl.local_score(spbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["a", "b", "c"],
+            "D",
+            ["A", "B", "C"],
         ),
     )
     assert np.isclose(
-        hl.local_score(spbn, "d", ["a", "b", "c"]),
+        hl.local_score(spbn, "D", ["A", "B", "C"]),
         numpy_local_score(
             pbn.LinearGaussianCPDType(),
             hl.training_data().to_pandas(),
             hl.test_data().to_pandas(),
-            "d",
-            ["b", "c", "a"],
+            "D",
+            ["B", "C", "A"],
         ),
     )
 
-    assert hl.local_score(spbn, "a") == hl.local_score(spbn, "a", spbn.parents("a"))
-    assert hl.local_score(spbn, "b") == hl.local_score(spbn, "b", spbn.parents("b"))
-    assert hl.local_score(spbn, "c") == hl.local_score(spbn, "c", spbn.parents("c"))
-    assert hl.local_score(spbn, "d") == hl.local_score(spbn, "d", spbn.parents("d"))
+    assert hl.local_score(spbn, "A") == hl.local_score(spbn, "A", spbn.parents("A"))
+    assert hl.local_score(spbn, "B") == hl.local_score(spbn, "B", spbn.parents("B"))
+    assert hl.local_score(spbn, "C") == hl.local_score(spbn, "C", spbn.parents("C"))
+    assert hl.local_score(spbn, "D") == hl.local_score(spbn, "D", spbn.parents("D"))
 
 
 def test_holdout_score():
     gbn = pbn.GaussianNetwork(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
     hl = pbn.HoldoutLikelihood(df, 0.2, 0)
@@ -362,24 +361,24 @@ def test_holdout_score():
     assert np.isclose(
         hl.score(gbn),
         (
-            hl.local_score(gbn, "a", [])
-            + hl.local_score(gbn, "b", ["a"])
-            + hl.local_score(gbn, "c", ["a", "b"])
-            + hl.local_score(gbn, "d", ["a", "b", "c"])
+            hl.local_score(gbn, "A", [])
+            + hl.local_score(gbn, "B", ["A"])
+            + hl.local_score(gbn, "C", ["A", "B"])
+            + hl.local_score(gbn, "D", ["A", "B", "C"])
         ),
     )
 
     spbn = pbn.SemiparametricBN(
-        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
-        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
+        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
+        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
     )
 
     assert np.isclose(
         hl.score(spbn),
         (
-            hl.local_score(spbn, "a")
-            + hl.local_score(spbn, "b")
-            + hl.local_score(spbn, "c")
-            + hl.local_score(spbn, "d")
+            hl.local_score(spbn, "A")
+            + hl.local_score(spbn, "B")
+            + hl.local_score(spbn, "C")
+            + hl.local_score(spbn, "D")
         ),
     )

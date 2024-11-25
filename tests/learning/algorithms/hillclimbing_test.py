@@ -1,8 +1,7 @@
 import numpy as np
-from util_test import generate_normal_data
-
 import pybnesian as pbn
 from pybnesian import BayesianNetwork, BayesianNetworkType
+from util_test import generate_normal_data
 
 df = generate_normal_data(1000)
 # TODO: Add tests for normal data with dependencies
@@ -15,11 +14,11 @@ def test_hc_estimate():
     start = pbn.GaussianNetwork(column_names)
 
     # Check algorithm with BN with nodes removed.
-    column_names.insert(1, "e")
-    column_names.insert(3, "f")
+    column_names.insert(1, "E")
+    column_names.insert(3, "F")
     start_removed_nodes = pbn.GaussianNetwork(column_names)
-    start_removed_nodes.remove_node("e")
-    start_removed_nodes.remove_node("f")
+    start_removed_nodes.remove_node("E")
+    start_removed_nodes.remove_node("F")
 
     arc_set = pbn.ArcOperatorSet()
 
@@ -85,12 +84,12 @@ def test_hc_conditional_estimate():
     start = pbn.ConditionalGaussianNetwork(column_names[2:], column_names[:2])
 
     nodes = column_names[2:]
-    nodes.insert(1, "e")
+    nodes.insert(1, "E")
     interface_nodes = column_names[:2]
-    interface_nodes.insert(1, "f")
+    interface_nodes.insert(1, "F")
     start_removed_nodes = pbn.ConditionalGaussianNetwork(nodes, interface_nodes)
-    start_removed_nodes.remove_node("e")
-    start_removed_nodes.remove_interface_node("f")
+    start_removed_nodes.remove_node("E")
+    start_removed_nodes.remove_interface_node("F")
 
     arc_set = pbn.ArcOperatorSet()
     hc = pbn.GreedyHillClimbing()
@@ -138,11 +137,11 @@ def test_hc_estimate_validation():
     column_names = list(df.columns.values)
     start = pbn.GaussianNetwork(column_names)
 
-    column_names.insert(1, "e")
-    column_names.insert(4, "f")
+    column_names.insert(1, "E")
+    column_names.insert(4, "F")
     start_removed_nodes = pbn.GaussianNetwork(column_names)
-    start_removed_nodes.remove_node("e")
-    start_removed_nodes.remove_node("f")
+    start_removed_nodes.remove_node("E")
+    start_removed_nodes.remove_node("F")
 
     vl = pbn.ValidatedLikelihood(df)
     arc_set = pbn.ArcOperatorSet()
@@ -271,7 +270,7 @@ class MyRestrictedGaussianNetworkType(BayesianNetworkType):
         return pbn.LinearGaussianCPDType()
 
     def can_have_arc(self, model, source, target):
-        return "a" in source
+        return "A" in source
 
     def new_bn(self, nodes):
         return NewBN(nodes)
@@ -299,7 +298,7 @@ class NewBN(BayesianNetwork):
 
 
 def test_newbn_estimate_validation():
-    start = NewBN(["a", "b", "c", "d"])
+    start = NewBN(["A", "B", "C", "D"])
     hc = pbn.GreedyHillClimbing()
     arc = pbn.ArcOperatorSet()
     bic = pbn.BIC(df)

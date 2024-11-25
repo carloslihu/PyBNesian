@@ -1,31 +1,30 @@
-import pytest
-
 import pybnesian as pbn
+import pytest
 from pybnesian import Factor, FactorType
 
 
 def test_factor_type():
-    lg1 = pbn.LinearGaussianCPD("a", [])
-    lg2 = pbn.LinearGaussianCPD("b", ["a"])
-    lg3 = pbn.LinearGaussianCPD("c", ["b", "a"])
+    lg1 = pbn.LinearGaussianCPD("A", [])
+    lg2 = pbn.LinearGaussianCPD("B", ["A"])
+    lg3 = pbn.LinearGaussianCPD("C", ["B", "A"])
 
     assert lg1.type() == pbn.LinearGaussianCPDType()
     assert lg1.type() == lg2.type()
     assert lg1.type() == lg3.type()
     assert lg2.type() == lg3.type()
 
-    c1 = pbn.CKDE("a", [])
-    c2 = pbn.CKDE("b", ["a"])
-    c3 = pbn.CKDE("c", ["b", "a"])
+    c1 = pbn.CKDE("A", [])
+    c2 = pbn.CKDE("B", ["A"])
+    c3 = pbn.CKDE("C", ["B", "A"])
 
     assert c1.type() == pbn.CKDEType()
     assert c1.type() == c2.type()
     assert c1.type() == c3.type()
     assert c2.type() == c3.type()
 
-    d1 = pbn.DiscreteFactor("a", [])
-    d2 = pbn.DiscreteFactor("b", ["a"])
-    d3 = pbn.DiscreteFactor("c", ["b", "a"])
+    d1 = pbn.DiscreteFactor("A", [])
+    d2 = pbn.DiscreteFactor("B", ["A"])
+    d3 = pbn.DiscreteFactor("C", ["B", "A"])
 
     assert d1.type() == pbn.DiscreteFactorType()
     assert d1.type() == d2.type()
@@ -80,9 +79,9 @@ def test_factor_defined_factor_type():
         def type(self):
             return F_type()
 
-    f1 = F("a", [])
-    f2 = F("b", ["a"])
-    f3 = F("c", ["a", "b"])
+    f1 = F("A", [])
+    f2 = F("B", ["A"])
+    f3 = F("C", ["A", "B"])
 
     assert f1.type() == f2.type()
     assert f1.type() == f3.type()
@@ -90,9 +89,9 @@ def test_factor_defined_factor_type():
 
     assert str(f1.type()) == str(f2.type()) == str(f3.type()) == "FType"
 
-    dummy_network = pbn.GaussianNetwork(["a", "b", "c", "d"])
+    dummy_network = pbn.GaussianNetwork(["A", "B", "C", "D"])
     with pytest.raises(RuntimeError) as ex:
-        f1.type().new_factor(dummy_network, "d", ["a", "b", "c"])
+        f1.type().new_factor(dummy_network, "D", ["A", "B", "C"])
     assert 'Tried to call pure virtual function "FactorType::new_factor"' in str(
         ex.value
     )
@@ -114,9 +113,9 @@ def test_factor_defined_factor_type():
         def type(self):
             return G_type()
 
-    g1 = G("a", [])
-    g2 = G("b", ["a"])
-    g3 = G("c", ["a", "b"])
+    g1 = G("A", [])
+    g2 = G("B", ["A"])
+    g3 = G("C", ["A", "B"])
 
     assert g1.type() == g2.type()
     assert g1.type() == g3.type()
@@ -126,8 +125,8 @@ def test_factor_defined_factor_type():
 
     assert str(g1.type()) == str(g2.type()) == str(g3.type()) == "GType"
 
-    g4 = g1.type().new_factor(dummy_network, "d", ["a", "b", "c"])
+    g4 = g1.type().new_factor(dummy_network, "D", ["A", "B", "C"])
 
     assert g1.type() == g4.type()
-    assert g4.variable() == "d"
-    assert g4.evidence() == ["a", "b", "c"]
+    assert g4.variable() == "D"
+    assert g4.evidence() == ["A", "B", "C"]
