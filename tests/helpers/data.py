@@ -6,7 +6,6 @@ DATA_SIZE = 10000
 SEED = 0
 
 
-# TODO: Copy to pybnesian
 def generate_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of normally distributed data with linear Gaussian relationships.
     The relationships are as follows:

@@ -8,7 +8,8 @@ from pybnesian import (
     KDENetwork,
     SemiparametricBN,
 )
-from util_test import generate_normal_data_independent
+
+from data import generate_normal_data_independent
 
 
 def test_bn_type():

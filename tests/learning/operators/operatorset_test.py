@@ -1,7 +1,8 @@
 import numpy as np
 import pybnesian as pbn
 import pytest
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 SIZE = 10000
 df = generate_normal_data(SIZE)

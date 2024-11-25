@@ -6,7 +6,8 @@ import pytest
 from scipy.stats import gaussian_kde
 from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 SIZE = 10000
 SMALL_SIZE = 10

@@ -1,7 +1,8 @@
 import numpy as np
 import pybnesian as pbn
 from pybnesian import BayesianNetwork, BayesianNetworkType
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 df = generate_normal_data(1000)
 # TODO: Add tests for normal data with dependencies

@@ -10,7 +10,8 @@ from pybnesian import (
     GaussianNetwork,
 )
 from scipy.stats import norm
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 df = generate_normal_data(1000)
 

@@ -15,7 +15,8 @@ from pybnesian import (
     LinearGaussianCPD,
     SemiparametricBN,
 )
-from util_test import generate_discrete_data, generate_normal_data_independent
+
+from data import generate_discrete_data, generate_normal_data_independent
 
 
 @pytest.fixture

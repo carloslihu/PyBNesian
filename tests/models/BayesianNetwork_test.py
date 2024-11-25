@@ -2,7 +2,8 @@ import numpy as np
 import pybnesian as pbn
 import pytest
 from pybnesian import BayesianNetwork, GaussianNetwork
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 df = generate_normal_data(10000)
 

@@ -3,7 +3,8 @@ import pandas as pd
 import pybnesian as pbn
 import pytest
 from scipy.stats import gaussian_kde, norm
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 SIZE = 1000
 df = generate_normal_data(SIZE)

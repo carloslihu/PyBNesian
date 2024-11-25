@@ -4,7 +4,8 @@ import pybnesian as pbn
 import pytest
 from pybnesian import BandwidthSelector
 from scipy.stats import gaussian_kde
-from util_test import generate_normal_data
+
+from data import generate_normal_data
 
 SIZE = 500
 df = generate_normal_data(SIZE, seed=0)
