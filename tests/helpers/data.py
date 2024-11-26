@@ -384,7 +384,7 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
     # Initialization
     np.random.seed(seed)
 
-    class_dict = np.asarray(["Class1", "Class2", "Class3"])
+    class_dict = np.asarray(["class1", "class2", "class3"])
     class_values = class_dict[
         np.random.choice(class_dict.size, size, p=[0.3, 0.4, 0.3])
     ]
@@ -395,9 +395,9 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
     c_values = np.empty_like(a_values)
 
     # Indices
-    class1_indices = class_values == "Class1"
-    class2_indices = class_values == "Class2"
-    class3_indices = class_values == "Class3"
+    class1_indices = class_values == "class1"
+    class2_indices = class_values == "class2"
+    class3_indices = class_values == "class3"
 
     # Sampling
     # b_values based on class_values
