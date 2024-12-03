@@ -2,10 +2,21 @@ import itertools
 
 import numpy as np
 import pandas as pd
-from pybnesian import KMutualInformation, LinearCorrelation, MutualInformation, RCoT
+from pybnesian import (
+    ChiSquare,
+    KMutualInformation,
+    LinearCorrelation,
+    MutualInformation,
+    RCoT,
+)
 from scipy.stats import pearsonr
 
-from data import generate_normal_data, generate_normal_data_independent
+from data import (
+    generate_discrete_data,
+    generate_discrete_data_independent,
+    generate_normal_data,
+    generate_normal_data_independent,
+)
 
 # from sklearn.feature_selection import mutual_info_regression
 
@@ -13,13 +24,28 @@ from data import generate_normal_data, generate_normal_data_independent
 SIZE = 10000
 SEED = 0
 data = generate_normal_data(SIZE, SEED)
-data_independent = generate_normal_data_independent(SIZE, SEED)
+independent_data = generate_normal_data_independent(SIZE, SEED)
+
+discrete_data = generate_discrete_data(SIZE, SEED)
+independent_discrete_data = generate_discrete_data_independent(SIZE, SEED)
+
+
+def test_chi_square():
+    chi_square = ChiSquare(discrete_data)
+    independent_chi_square = ChiSquare(independent_discrete_data)
+
+    p_value = chi_square.pvalue("A", "B")
+    independent_p_value = independent_chi_square.pvalue("A", "B")
+
+    # Check whether the p-values are below the significance level
+    assert p_value < 0.05
+    assert independent_p_value > 0.05
 
 
 # RFE: Test true and false independence
 def test_linear_correlation():
     df = data[["A", "B"]]
-    independent_df = data_independent[["A", "B"]]
+    independent_df = independent_data[["A", "B"]]
 
     # Pybnesian Linear correlation
     linear_correlation = LinearCorrelation(df)
@@ -52,6 +78,7 @@ def test_linear_correlation():
         rtol=1e-5,
         atol=1e-8,
     )
+
     # Check whether the p-values are below the significance level
     assert pvalue < 0.05
     assert independent_pvalue > 0.05
@@ -59,7 +86,7 @@ def test_linear_correlation():
 
 def test_mutual_info():
     mutual_info = MutualInformation(data)
-    independent_mutual_info = MutualInformation(data_independent)
+    independent_mutual_info = MutualInformation(independent_data)
 
     # Check whether the mutual information is higher when the variables are dependent
     mutual_info_value = mutual_info.mi("A", "B")
@@ -76,7 +103,7 @@ def test_mutual_info():
 def test_k_mutual_info():
     n_neighbors = 3
     k_mutual_info = KMutualInformation(data, k=n_neighbors)
-    independent_k_mutual_info = KMutualInformation(data_independent, k=n_neighbors)
+    independent_k_mutual_info = KMutualInformation(independent_data, k=n_neighbors)
 
     # Check whether the mutual information is higher when the variables are dependent
     k_mutual_info_value = k_mutual_info.mi("A", "B")
@@ -84,6 +111,7 @@ def test_k_mutual_info():
     assert k_mutual_info_value > independent_k_mutual_info_value
 
     # Check whether the p-values are below the significance level
+    # NOTE: Slow execution
     pvalue = k_mutual_info.pvalue("A", "B")
     independent_pvalue = independent_k_mutual_info.pvalue("A", "B")
     assert pvalue < 0.05
@@ -105,10 +133,10 @@ def test_k_mutual_info():
 
 def test_rcot():
     rcot = RCoT(data, random_fourier_xy=5, random_fourier_z=100)
-    independent_rcot = RCoT(data_independent, random_fourier_xy=5, random_fourier_z=100)
-
+    independent_rcot = RCoT(independent_data, random_fourier_xy=5, random_fourier_z=100)
     p_value = rcot.pvalue("A", "B")
     independent_p_value = independent_rcot.pvalue("A", "B")
 
+    # Check whether the p-values are below the significance level
     assert p_value < 0.05
     assert independent_p_value > 0.05
