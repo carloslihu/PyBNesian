@@ -31,6 +31,7 @@ independent_discrete_data = generate_discrete_data_independent(SIZE, SEED)
 
 
 def test_chi_square():
+    """Test the chi-square independence test with discrete data"""
     chi_square = ChiSquare(discrete_data)
     independent_chi_square = ChiSquare(independent_discrete_data)
 
@@ -44,6 +45,7 @@ def test_chi_square():
 
 # RFE: Test true and false independence
 def test_linear_correlation():
+    """Test the linear correlation independence test with normal data"""
     df = data[["A", "B"]]
     independent_df = independent_data[["A", "B"]]
 
@@ -85,6 +87,7 @@ def test_linear_correlation():
 
 
 def test_mutual_info():
+    """Test the mutual information independence test with normal data"""
     mutual_info = MutualInformation(data)
     independent_mutual_info = MutualInformation(independent_data)
 
@@ -101,6 +104,7 @@ def test_mutual_info():
 
 
 def test_k_mutual_info():
+    """Test the k-nearest neighbors mutual information independence test with normal data"""
     n_neighbors = 3
     k_mutual_info = KMutualInformation(data, k=n_neighbors)
     independent_k_mutual_info = KMutualInformation(independent_data, k=n_neighbors)
@@ -118,6 +122,7 @@ def test_k_mutual_info():
     assert independent_pvalue > 0.05
 
     # RFE: Results vary with scikit-learn, why?
+
     # sklearn_k_mutual_info_value = mutual_info_regression(
     #     data[["A"]], data["B"], n_neighbors=n_neighbors
     # )[0]
@@ -129,9 +134,11 @@ def test_k_mutual_info():
     #     rtol=1e-5,
     #     atol=1e-8,
     # )
+    # RFE: Test alternative https://github.com/syanga/pycit
 
 
 def test_rcot():
+    """Test the Randomized Conditional Correlation Test (RCoT) independence test with normal data"""
     rcot = RCoT(data, random_fourier_xy=5, random_fourier_z=100)
     independent_rcot = RCoT(independent_data, random_fourier_xy=5, random_fourier_z=100)
     p_value = rcot.pvalue("A", "B")
