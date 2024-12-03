@@ -29,6 +29,18 @@ independent_data = generate_normal_data_independent(SIZE, SEED)
 discrete_data = generate_discrete_data(SIZE, SEED)
 independent_discrete_data = generate_discrete_data_independent(SIZE, SEED)
 
+# INDEPENDENCE TESTS
+# The null hypothesis (H0​) is that the two variables are independent,
+# while the alternative hypothesis (H1) is that the two variables are dependent
+#
+# - If the p-value is less than or equal to the chosen significance level (usually 0.05),
+# you reject the null hypothesis (H0H) in favor of the alternative hypothesis (H1).
+# This suggests that there is a statistically significant association between the two variables.
+#
+# - If the p-value is greater than the significance level, you do not reject the null hypothesis.
+# This indicates that there is insufficient evidence to conclude that the variables are dependent,
+# and it is plausible that they are independent
+
 
 def test_chi_square():
     """Test the chi-square independence test with discrete data"""
