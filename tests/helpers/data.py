@@ -4,6 +4,7 @@ import pandas as pd
 TRUE_LABEL = "class_label"
 DATA_SIZE = 10000
 SEED = 0
+N_NEIGHBORS = 3
 
 
 def generate_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:

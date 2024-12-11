@@ -2,6 +2,15 @@ import itertools
 
 import numpy as np
 import pandas as pd
+from data import (
+    N_NEIGHBORS,
+    SEED,
+    SIZE,
+    generate_discrete_data,
+    generate_discrete_data_independent,
+    generate_normal_data,
+    generate_normal_data_independent,
+)
 from pybnesian import (
     ChiSquare,
     KMutualInformation,
@@ -11,18 +20,8 @@ from pybnesian import (
 )
 from scipy.stats import pearsonr
 
-from data import (
-    generate_discrete_data,
-    generate_discrete_data_independent,
-    generate_normal_data,
-    generate_normal_data_independent,
-)
-
 # from sklearn.feature_selection import mutual_info_regression
 
-
-SIZE = 10000
-SEED = 0
 data = generate_normal_data(SIZE, SEED)
 independent_data = generate_normal_data_independent(SIZE, SEED)
 
@@ -117,9 +116,8 @@ def test_mutual_info():
 
 def test_k_mutual_info():
     """Test the k-nearest neighbors mutual information independence test with normal data"""
-    n_neighbors = 3
-    k_mutual_info = KMutualInformation(data, k=n_neighbors)
-    independent_k_mutual_info = KMutualInformation(independent_data, k=n_neighbors)
+    k_mutual_info = KMutualInformation(data, k=N_NEIGHBORS)
+    independent_k_mutual_info = KMutualInformation(independent_data, k=N_NEIGHBORS)
 
     # Check whether the mutual information is higher when the variables are dependent
     k_mutual_info_value = k_mutual_info.mi("A", "B")
