@@ -3,9 +3,9 @@ import itertools
 import numpy as np
 import pandas as pd
 from data import (
+    DATA_SIZE,
     N_NEIGHBORS,
     SEED,
-    SIZE,
     generate_discrete_data,
     generate_discrete_data_independent,
     generate_normal_data,
@@ -22,11 +22,11 @@ from scipy.stats import pearsonr
 
 # from sklearn.feature_selection import mutual_info_regression
 
-data = generate_normal_data(SIZE, SEED)
-independent_data = generate_normal_data_independent(SIZE, SEED)
+data = generate_normal_data(DATA_SIZE, SEED)
+independent_data = generate_normal_data_independent(DATA_SIZE, SEED)
 
-discrete_data = generate_discrete_data(SIZE, SEED)
-independent_discrete_data = generate_discrete_data_independent(SIZE, SEED)
+discrete_data = generate_discrete_data(DATA_SIZE, SEED)
+independent_discrete_data = generate_discrete_data_independent(DATA_SIZE, SEED)
 
 # INDEPENDENCE TESTS
 # The null hypothesis (H0​) is that the two variables are independent,
