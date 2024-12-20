@@ -28,7 +28,7 @@
 
 import re
 
-import gdb
+import gdb  # type: ignore
 
 
 class EigenMatrixPrinter:
