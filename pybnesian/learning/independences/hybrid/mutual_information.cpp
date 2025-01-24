@@ -1029,7 +1029,7 @@ double MutualInformation::mi_mixed_impl(const std::string& discrete, const std::
         }
     }
 
-    return std::max(mi, 0.);
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::mi_mixed(const std::string& discrete, const std::string& continuous) const {
@@ -1126,6 +1126,10 @@ double MutualInformation::pvalue(const std::string& x, const std::string& y) con
     auto mi_value = mi(x, y);
     // Multiply by 2*N to obtain 2*N*MI(X; Y). This follows a X^2 distribution.
     mi_value *= 2 * m_df.valid_rows(x, y);
+
+    if (std::isinf(mi_value) || std::isnan(mi_value)) {
+        return 1;
+    }
     auto df = calculate_df(x, y);
 
     boost::math::chi_squared_distribution chidist(static_cast<double>(df));
@@ -1276,7 +1280,7 @@ double MutualInformation::cmi_discrete_continuous_impl(const std::string& x,
 
     // Sum - H(Z)
     mi -= 0.5 + 0.5 * std::log(2 * util::pi<double> * total_variance);
-    return std::max(mi, 0.);
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::cmi_discrete_continuous(const std::string& x,
@@ -1378,6 +1382,10 @@ double MutualInformation::pvalue(const std::string& x, const std::string& y, con
     auto mi_value = mi(x, y, z);
     // Multiply by 2*N to obtain 2*N*MI(X; Y). This follows a X^2 distribution.
     mi_value *= 2 * m_df.valid_rows(x, y, z);
+
+    if (std::isinf(mi_value) || std::isnan(mi_value)) {
+        return 1;
+    }
     auto df = calculate_df(x, y, z);
 
     boost::math::chi_squared_distribution chidist(static_cast<double>(df));
@@ -1527,7 +1535,7 @@ double MutualInformation::cmi_general_both_discrete(const std::string& x,
         mi -= pz * h_z;
     }
 
-    return std::max(mi, 0.);
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::cmi_general_mixed(const std::string& x_discrete,
@@ -1584,7 +1592,7 @@ double MutualInformation::cmi_general_mixed(const std::string& x_discrete,
         }
     }
 
-    return std::max(mi, 0.);
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::cmi_general_both_continuous(const std::string& x,
@@ -1621,7 +1629,7 @@ double MutualInformation::cmi_general_both_continuous(const std::string& x,
         }
     }
 
-    return std::max(mi, 0.);
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::cmi_general(const std::string& x,
@@ -1744,6 +1752,10 @@ double MutualInformation::pvalue(const std::string& x, const std::string& y, con
     auto mi_value = cmi_general(x, y, discrete_z, continuous_z);
     // Multiply by 2*N to obtain 2*N*MI(X; Y). This follows a X^2 distribution.
     mi_value *= 2 * m_df.valid_rows(x, y, z);
+
+    if (std::isinf(mi_value) || std::isnan(mi_value)) {
+        return 1;
+    }
     auto df = calculate_df(x, y, discrete_z, continuous_z);
 
     boost::math::chi_squared_distribution chidist(static_cast<double>(df));
