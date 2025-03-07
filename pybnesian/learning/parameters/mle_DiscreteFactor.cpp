@@ -31,10 +31,11 @@ typename DiscreteFactor::ParamsClass _fit(const DataFrame& df,
             }
         } else {
             // Schurmann-Grassberger smoothing, lambda = 1 (uniform prior)
-            double lambda = 1/cardinality(0);
+            double lambda = 1 / cardinality(0);
             double logsum_configuration = std::log(static_cast<double>(sum_configuration + lambda * cardinality(0)));
             for (auto i = 0; i < cardinality(0); ++i) {
-                logprob(offset + i) = std::log(static_cast<double>(joint_counts(offset + i) + lambda)) - logsum_configuration;
+                logprob(offset + i) =
+                    std::log(static_cast<double>(joint_counts(offset + i) + lambda)) - logsum_configuration;
             }
         }
     }
