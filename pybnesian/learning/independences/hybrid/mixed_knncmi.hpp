@@ -32,14 +32,14 @@ double mi_pair(VPTree& ytree,
 class MixedKMutualInformation : public IndependenceTest {
 public:
     MixedKMutualInformation(DataFrame df,
-                         int k,
-                         unsigned int seed = std::random_device{}(),
-                         int shuffle_neighbors = 5,
-                         int samples = 1000,
-                         std::string scaling = "min_max",
-                         bool gamma_approx = true,
-                         bool adaptive_k = true,
-                         int tree_leafsize = 16)
+                            int k,
+                            unsigned int seed = std::random_device{}(),
+                            int shuffle_neighbors = 5,
+                            int samples = 1000,
+                            std::string scaling = "min_max",
+                            bool gamma_approx = true,
+                            bool adaptive_k = true,
+                            int tree_leafsize = 16)
         : m_df(df),
           m_scaled_df(scale_data(df, scaling)),
           m_datatype(),
@@ -84,7 +84,7 @@ private:
 
     int find_minimum_cluster_size(const std::vector<std::string>& discrete_vars) const;
     int find_minimum_shuffled_cluster_size(const DataFrame& shuffled_df,
-                                                                 const std::vector<std::string>& discrete_vars) const;
+                                           const std::vector<std::string>& discrete_vars) const;
     DataFrame m_df;
     DataFrame m_scaled_df;
     std::shared_ptr<arrow::DataType> m_datatype;

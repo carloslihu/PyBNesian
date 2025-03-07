@@ -528,7 +528,7 @@ Initializes a :class:`DynamicChiSquare` with the given :class:`DynamicDataFrame`
 :param ddf: :class:`DynamicDataFrame` to create the :class:`DynamicChiSquare`.
 )doc");
 
-py::class_<MixedKMutualInformation, IndependenceTest, std::shared_ptr<MixedKMutualInformation>>(
+    py::class_<MixedKMutualInformation, IndependenceTest, std::shared_ptr<MixedKMutualInformation>>(
         root, "MixedKMutualInformation", R"doc(
 This class implements a non-parametric independence test that is based on the estimation of the mutual information
 using k-nearest neighbors, accelerated using vantage-point trees (VP-Trees). This independence is implemented for a mix of categorical and continuous data.

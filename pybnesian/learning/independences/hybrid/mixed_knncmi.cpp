@@ -206,7 +206,7 @@ int MixedKMutualInformation::find_minimum_cluster_size(const std::vector<std::st
 }
 
 int MixedKMutualInformation::find_minimum_shuffled_cluster_size(const DataFrame& shuffled_df,
-                                                             const std::vector<std::string>& discrete_vars) const {
+                                                                const std::vector<std::string>& discrete_vars) const {
     // hash the columns as they are no longer of type arrow::DictionaryArray
     std::unordered_map<size_t, int> joint_counts;
     switch (m_datatype->id()) {
@@ -331,7 +331,9 @@ double MixedKMutualInformation::mi(const std::string& x, const std::string& y, c
     return mi_general(ztree, subset_df, k, m_datatype, is_discrete_column, m_tree_leafsize, m_seed);
 }
 
-double MixedKMutualInformation::mi(const std::string& x, const std::string& y, const std::vector<std::string>& z) const {
+double MixedKMutualInformation::mi(const std::string& x,
+                                   const std::string& y,
+                                   const std::vector<std::string>& z) const {
     auto subset_df = m_scaled_df.loc(x, y, z);
     std::vector<bool> is_discrete_column;
     bool discrete_present = false;
@@ -511,8 +513,8 @@ double MixedKMutualInformation::pvalue(const std::string& x, const std::string& 
 }
 
 double MixedKMutualInformation::pvalue(const std::string& x,
-                                    const std::string& y,
-                                    const std::vector<std::string>& z) const {
+                                       const std::string& y,
+                                       const std::vector<std::string>& z) const {
     auto subset_df = m_scaled_df.loc(x, y, z);
     std::vector<bool> is_discrete_column;
     bool discrete_present = false;
@@ -579,14 +581,14 @@ void shuffle_dataframe(const CType* original_x,
 }
 
 double MixedKMutualInformation::shuffled_pvalue(double original_mi,
-                                             int k,
-                                             int shuffle_neighbors,
-                                             DataFrame& x_df,
-                                             VPTree& ztree,
-                                             DataFrame& z_df,
-                                             DataFrame& shuffled_df,
-                                             std::vector<bool>& is_discrete_column,
-                                             std::vector<std::string>& discrete_vars) const {
+                                                int k,
+                                                int shuffle_neighbors,
+                                                DataFrame& x_df,
+                                                VPTree& ztree,
+                                                DataFrame& z_df,
+                                                DataFrame& shuffled_df,
+                                                std::vector<bool>& is_discrete_column,
+                                                std::vector<std::string>& discrete_vars) const {
     std::minstd_rand rng{m_seed};
     std::vector<VectorXi> neighbors(m_df->num_rows());
 
