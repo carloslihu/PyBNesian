@@ -296,6 +296,7 @@ Prerequisites
 - Git.
 - OpenCL drivers installed.
 
+We provide a detailed [installation guide](INSTALLATION.md) for these prerequisites of PyBNesian.
 
 Building
 --------
