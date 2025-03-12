@@ -574,7 +574,13 @@ void KDE::_fit(const DataFrame& df) {
 
     auto d = m_variables.size();
     // NOTE: Here the positive definiteness of the bandwidth is checked
-    m_bandwidth = m_bselector->bandwidth(df, m_variables);
+    try {
+        m_bandwidth = m_bselector->bandwidth(df, m_variables);
+    } catch (util::singular_covariance_data& e) {
+        std::cerr << "KDE::_fit:\t" << e.what() << std::endl;
+        throw e;
+    }
+
     // Calculates the LLT decomposition matrix of the bandwidth matrix
     auto llt_cov = m_bandwidth.llt();
     auto cholesky = llt_cov.matrixLLT();
