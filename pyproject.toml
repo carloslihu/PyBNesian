@@ -2,7 +2,6 @@
 requires = ["scikit-build-core", "pybind11"]
 build-backend = "scikit_build_core.build"
 
-
 [tool.scikit-build]
 cmake.verbose = true
 logging.level = "INFO"
@@ -49,3 +48,6 @@ before-all = [
     "export MACOSX_DEPLOYMENT_TARGET=10.14",
     "export VCPKG_ENV_PASSTHROUGH=MACOSX_DEPLOYMENT_TARGET",
 ]
+
+[tool.setuptools.package-data]
+"pybnesian" = ["*.pyi", "py.typed"]
