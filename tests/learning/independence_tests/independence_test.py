@@ -2,7 +2,7 @@ import itertools
 
 import numpy as np
 import pandas as pd
-from data import (
+from helpers.data import (
     DATA_SIZE,
     N_NEIGHBORS,
     SEED,

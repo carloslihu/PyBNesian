@@ -3,6 +3,7 @@ import pickle
 import pyarrow as pa
 import pybnesian as pbn
 import pytest
+from helpers.data import generate_discrete_data, generate_normal_data_independent
 from pybnesian import (
     CKDE,
     BayesianNetwork,
@@ -15,8 +16,6 @@ from pybnesian import (
     LinearGaussianCPD,
     SemiparametricBN,
 )
-
-from data import generate_discrete_data, generate_normal_data_independent
 
 
 @pytest.fixture

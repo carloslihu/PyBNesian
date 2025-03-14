@@ -4,14 +4,13 @@ import numpy as np
 import pandas as pd
 import pybnesian as pbn
 import pytest
+from helpers.data import generate_normal_data
 from pybnesian import (
     ConditionalGaussianNetwork,
     DynamicGaussianNetwork,
     GaussianNetwork,
 )
 from scipy.stats import norm
-
-from data import generate_normal_data
 
 df = generate_normal_data(1000)
 

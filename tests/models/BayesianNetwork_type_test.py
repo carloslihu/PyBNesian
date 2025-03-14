@@ -1,4 +1,5 @@
 import pybnesian as pbn
+from helpers.data import generate_normal_data_independent
 from pybnesian import (
     BayesianNetwork,
     BayesianNetworkType,
@@ -8,8 +9,6 @@ from pybnesian import (
     KDENetwork,
     SemiparametricBN,
 )
-
-from data import generate_normal_data_independent
 
 
 def test_bn_type():

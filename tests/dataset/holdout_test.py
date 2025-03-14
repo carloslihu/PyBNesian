@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
 import pybnesian as pbn
-
-from data import generate_normal_data
+from helpers.data import generate_normal_data
 
 SIZE = 10000
 

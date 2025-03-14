@@ -3,8 +3,7 @@ import pandas as pd
 import pyarrow as pa
 import pybnesian as pbn
 import pytest
-
-from data import generate_discrete_data
+from helpers.data import generate_discrete_data
 
 df = generate_discrete_data(10000)
 

@@ -2,9 +2,8 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pybnesian as pbn
+from helpers.data import generate_normal_data
 from scipy.stats import norm
-
-from data import generate_normal_data
 
 SIZE = 10000
 

@@ -2,10 +2,9 @@ import numpy as np
 import pyarrow as pa
 import pybnesian as pbn
 import pytest
+from helpers.data import generate_normal_data
 from pybnesian import BandwidthSelector
 from scipy.stats import gaussian_kde
-
-from data import generate_normal_data
 
 SIZE = 500
 df = generate_normal_data(SIZE, seed=0)
