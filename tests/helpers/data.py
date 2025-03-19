@@ -1,10 +1,14 @@
 import numpy as np
 import pandas as pd
 
-TRUE_LABEL = "class_label"
+# Constants
+TRUE_LABEL = "attack_label"
+SUPER_PARENT = "A"
 DATA_SIZE = 10000
-SEED = 0
+SAMPLE_SIZE = 100
+
 N_NEIGHBORS = 3
+SEED = 0
 
 
 def generate_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:
@@ -422,6 +426,71 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
         + 3 * b_values[class3_indices]
         + np.random.normal(0, 0.25, size=class3_indices.sum())
     )
+
+    # DataFrame
+    df = pd.DataFrame(
+        {
+            TRUE_LABEL: pd.Series(class_values, dtype="category"),
+            "A": a_values,
+            "B": b_values,
+            "C": c_values,
+        }
+    )
+    return df
+
+
+def generate_non_normal_data_classification(
+    size: int, seed: int = SEED
+) -> pd.DataFrame:
+    """Generates a DataFrame of uniformly distributed data with non-linear relationships and a true label.
+    The relationships are as follows:
+    - TRUE_LABEL ~ Categorical(0.3, 0.4, 0.3)
+    - A ~ U(0, 10)
+    - B ~ U(5, 15) if class = class1, else U(10, 20) if class = class2, else U(15, 25) if class = class3
+    - C ~ sin(A) + cos(B) + U(-1, 1) if class = class1, else exp(A / 10) + log(B + 1) + U(-0.5, 0.5) if class = class2, else A * B + U(-2, 2) if class = class3
+
+    Args:
+        size (int): The sample size.
+        seed (int, optional): The seed for random sampling. Defaults to 0.
+
+    Returns:
+        pd.DataFrame: The DataFrame.
+    """
+    np.random.seed(seed)
+
+    class_dict = np.asarray(["class1", "class2", "class3"])
+    class_values = class_dict[
+        np.random.choice(class_dict.size, size, p=[0.3, 0.4, 0.3])
+    ]
+
+    a_values = np.random.uniform(0, 10, size)
+
+    b_values = np.empty_like(a_values)
+    c_values = np.empty_like(a_values)
+
+    # Indices
+    class1_indices = class_values == "class1"
+    class2_indices = class_values == "class2"
+    class3_indices = class_values == "class3"
+
+    # Sampling
+    b_values[class1_indices] = np.random.uniform(5, 15, size=class1_indices.sum())
+    b_values[class2_indices] = np.random.uniform(10, 20, size=class2_indices.sum())
+    b_values[class3_indices] = np.random.uniform(15, 25, size=class3_indices.sum())
+
+    c_values[class1_indices] = (
+        np.sin(a_values[class1_indices])
+        + np.cos(b_values[class1_indices])
+        + np.random.uniform(-1, 1, size=class1_indices.sum())
+    )
+    c_values[class2_indices] = (
+        np.exp(a_values[class2_indices] / 10)
+        + np.log(b_values[class2_indices] + 1)
+        + np.random.uniform(-0.5, 0.5, size=class2_indices.sum())
+    )
+    c_values[class3_indices] = a_values[class3_indices] * b_values[
+        class3_indices
+    ] + np.random.uniform(-2, 2, size=class3_indices.sum())
 
     # DataFrame
     df = pd.DataFrame(
