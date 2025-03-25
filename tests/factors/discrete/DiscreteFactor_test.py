@@ -3,9 +3,9 @@ import pandas as pd
 import pyarrow as pa
 import pybnesian as pbn
 import pytest
-from helpers.data import generate_discrete_data
+from helpers.data import DATA_SIZE, generate_discrete_data
 
-df = generate_discrete_data(10000)
+df = generate_discrete_data(DATA_SIZE)
 
 
 def test_data_type():

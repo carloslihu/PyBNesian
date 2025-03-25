@@ -3,15 +3,14 @@ import pandas as pd
 import pyarrow as pa
 import pybnesian as pbn
 import pytest
-from helpers.data import generate_normal_data
+from helpers.data import DATA_SIZE, generate_normal_data
 from scipy.stats import gaussian_kde
 from scipy.stats import multivariate_normal as mvn
 from scipy.stats import norm
 
-SIZE = 10000
 SMALL_SIZE = 10
 TEST_SIZE = 50
-df = generate_normal_data(SIZE, seed=0)
+df = generate_normal_data(DATA_SIZE, seed=0)
 df_small = generate_normal_data(SMALL_SIZE, seed=0)
 df_float = df.astype("float32")
 df_small_float = df_small.astype("float32")
@@ -164,10 +163,10 @@ def test_ckde_fit_null():
         assert cpd.num_instances() == scipy_kde.n
 
     np.random.seed(0)
-    a_null = np.random.randint(0, SIZE, size=100)
-    b_null = np.random.randint(0, SIZE, size=100)
-    c_null = np.random.randint(0, SIZE, size=100)
-    d_null = np.random.randint(0, SIZE, size=100)
+    a_null = np.random.randint(0, DATA_SIZE, size=100)
+    b_null = np.random.randint(0, DATA_SIZE, size=100)
+    c_null = np.random.randint(0, DATA_SIZE, size=100)
+    d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df.copy()
     df_null.loc[df_null.index[a_null], "A"] = np.nan

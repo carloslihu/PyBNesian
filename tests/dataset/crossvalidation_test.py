@@ -1,10 +1,8 @@
 import numpy as np
 import pybnesian as pbn
-from helpers.data import generate_normal_data
+from helpers.data import DATA_SIZE, generate_normal_data
 
-SIZE = 10000
-
-df = generate_normal_data(SIZE)
+df = generate_normal_data(DATA_SIZE)
 
 
 def test_cv_disjoint_indices():
@@ -16,7 +14,7 @@ def test_cv_disjoint_indices():
         combination = np.hstack((nptrain, nptest))
 
         assert np.all(
-            np.sort(combination) == np.arange(SIZE)
+            np.sort(combination) == np.arange(DATA_SIZE)
         ), "Not all the examples are included in the cross validation."
         assert np.all(
             train_df.to_pandas().to_numpy() == df.iloc[train_indices, :].to_numpy()
@@ -168,10 +166,10 @@ def test_cv_loc():
 
 def test_cv_null():
     np.random.seed(0)
-    a_null = np.random.randint(0, SIZE, size=100)
-    b_null = np.random.randint(0, SIZE, size=100)
-    c_null = np.random.randint(0, SIZE, size=100)
-    d_null = np.random.randint(0, SIZE, size=100)
+    a_null = np.random.randint(0, DATA_SIZE, size=100)
+    b_null = np.random.randint(0, DATA_SIZE, size=100)
+    c_null = np.random.randint(0, DATA_SIZE, size=100)
+    d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df
     df_null.loc[df_null.index[a_null], "A"] = np.nan
@@ -193,7 +191,7 @@ def test_cv_null():
 
         actual_combination = np.sort(
             np.setdiff1d(
-                np.arange(SIZE),
+                np.arange(DATA_SIZE),
                 np.asarray(
                     list(set(list(a_null) + list(b_null) + list(c_null) + list(d_null)))
                 ),
@@ -230,7 +228,7 @@ def test_cv_null():
     ):
         assert (
             train_df.num_rows + test_df.num_rows
-        ) == SIZE, "CV did not remove null instances correctly."
+        ) == DATA_SIZE, "CV did not remove null instances correctly."
 
         nptrain = np.asarray(train_indices)
         nptest = np.asarray(test_indices)
@@ -242,7 +240,7 @@ def test_cv_null():
         test_indices_mat = df.iloc[test_indices, :].to_numpy()
 
         assert np.all(
-            np.sort(combination) == np.arange(SIZE)
+            np.sort(combination) == np.arange(DATA_SIZE)
         ), "Not all the examples are included in the cross validation."
         assert np.all(
             np.isnan(train_df_mat) == np.isnan(train_indices_mat)

@@ -1,10 +1,9 @@
 import numpy as np
 import pybnesian as pbn
 import pytest
-from helpers.data import generate_normal_data
+from helpers.data import DATA_SIZE, generate_normal_data
 
-SIZE = 10000
-df = generate_normal_data(SIZE)
+df = generate_normal_data(DATA_SIZE)
 
 
 def numpy_fit_mle_lg(data, variable, evidence):

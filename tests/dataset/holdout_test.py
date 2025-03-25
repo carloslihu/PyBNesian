@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 import pybnesian as pbn
-from helpers.data import generate_normal_data
+from helpers.data import DATA_SIZE, generate_normal_data
 
-SIZE = 10000
-
-df = generate_normal_data(SIZE)
+df = generate_normal_data(DATA_SIZE)
 
 
 def test_holdout_disjoint():
@@ -15,7 +13,7 @@ def test_holdout_disjoint():
 
     assert (
         train_df.num_rows + test_df.num_rows
-    ) == SIZE, "HoldOut do not have the expected number of rows"
+    ) == DATA_SIZE, "HoldOut do not have the expected number of rows"
 
     assert train_df.num_rows == round(
         (1 - 0.2) * df.shape[0]
@@ -37,7 +35,7 @@ def test_holdout_disjoint():
 
     assert (
         train_df.num_rows + test_df.num_rows
-    ) == SIZE, "HoldOut do not have the expected number of rows"
+    ) == DATA_SIZE, "HoldOut do not have the expected number of rows"
 
     assert train_df.num_rows == round(
         (1 - 0.3) * df.shape[0]
@@ -82,10 +80,10 @@ def test_holdout_seed():
 
 def test_holdout_null():
     np.random.seed(0)
-    a_null = np.random.randint(0, SIZE, size=100)
-    b_null = np.random.randint(0, SIZE, size=100)
-    c_null = np.random.randint(0, SIZE, size=100)
-    d_null = np.random.randint(0, SIZE, size=100)
+    a_null = np.random.randint(0, DATA_SIZE, size=100)
+    b_null = np.random.randint(0, DATA_SIZE, size=100)
+    c_null = np.random.randint(0, DATA_SIZE, size=100)
+    d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df
     df_null.loc[df_null.index[a_null], "A"] = np.nan
@@ -120,12 +118,12 @@ def test_holdout_null():
     train_df, test_df = hold_null.training_data(), hold_null.test_data()
     assert (
         train_df.num_rows + test_df.num_rows
-    ) == SIZE, "HoldOut do not have the expected number of rows"
+    ) == DATA_SIZE, "HoldOut do not have the expected number of rows"
     assert train_df.num_rows == round(
-        (1 - 0.2) * SIZE
+        (1 - 0.2) * DATA_SIZE
     ), "Train DataFrame do not have the expected number of instances"
     assert test_df.num_rows == round(
-        0.2 * SIZE
+        0.2 * DATA_SIZE
     ), "Test DataFrame do not have the expected number of instances"
 
     combination = pd.concat([train_df.to_pandas(), test_df.to_pandas()])

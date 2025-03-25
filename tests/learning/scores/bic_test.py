@@ -1,11 +1,9 @@
 import numpy as np
 import pybnesian as pbn
-from helpers.data import generate_normal_data
+from helpers.data import DATA_SIZE, generate_normal_data
 from scipy.stats import norm
 
-SIZE = 10000
-
-df = generate_normal_data(SIZE)
+df = generate_normal_data(DATA_SIZE)
 
 
 def numpy_local_score(data, variable, evidence):
@@ -69,10 +67,10 @@ def test_bic_local_score_null():
     )
 
     np.random.seed(0)
-    a_null = np.random.randint(0, SIZE, size=100)
-    b_null = np.random.randint(0, SIZE, size=100)
-    c_null = np.random.randint(0, SIZE, size=100)
-    d_null = np.random.randint(0, SIZE, size=100)
+    a_null = np.random.randint(0, DATA_SIZE, size=100)
+    b_null = np.random.randint(0, DATA_SIZE, size=100)
+    c_null = np.random.randint(0, DATA_SIZE, size=100)
+    d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df.copy()
     df_null.loc[df_null.index[a_null], "A"] = np.nan
