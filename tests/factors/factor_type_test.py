@@ -91,7 +91,7 @@ def test_factor_defined_factor_type():
     dummy_network = pbn.GaussianNetwork(["A", "B", "C", "D"])
     with pytest.raises(RuntimeError) as ex:
         f1.type().new_factor(dummy_network, "D", ["A", "B", "C"])
-    assert 'Tried to call pure virtual function "pbn.FactorType::new_factor"' in str(
+    assert 'Tried to call pure virtual function "FactorType::new_factor"' in str(
         ex.value
     )
 

@@ -209,7 +209,7 @@ def test_serialization_bn_model(
 @pytest.fixture
 def gaussian_partial_fit_bytes():
     gaussian = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
-    lg = pbn.pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
     gaussian.add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)

@@ -152,7 +152,7 @@ def test_fit():
         cpd = spbn.cpd(n)
         assert cpd.type() == pbn.LinearGaussianCPDType()
 
-        assert type(cpd) == pbn.pbn.LinearGaussianCPD
+        assert type(cpd) == pbn.LinearGaussianCPD
         assert cpd.variable() == n
         assert set(cpd.evidence()) == set(spbn.parents(n))
 
@@ -161,12 +161,12 @@ def test_fit():
     spbn.remove_arc("A", "B")
 
     cpd_b = spbn.cpd("B")
-    assert type(cpd_b) == pbn.pbn.LinearGaussianCPD
+    assert type(cpd_b) == pbn.LinearGaussianCPD
     assert cpd_b.evidence != spbn.parents("B")
 
     spbn.fit(df)
     cpd_b = spbn.cpd("B")
-    assert type(cpd_b) == pbn.pbn.LinearGaussianCPD
+    assert type(cpd_b) == pbn.LinearGaussianCPD
     assert cpd_b.evidence() == spbn.parents("B")
 
     spbn.set_node_type("C", pbn.CKDEType())
