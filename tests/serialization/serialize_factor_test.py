@@ -4,30 +4,29 @@ import numpy as np
 import pandas as pd
 import pybnesian as pbn
 import pytest
-from pybnesian import CKDE, DiscreteFactor, Factor, FactorType, LinearGaussianCPD
 
 
 @pytest.fixture
 def lg_bytes():
-    lg = LinearGaussianCPD("C", ["A", "B"])
+    lg = pbn.LinearGaussianCPD("C", ["A", "B"])
     return pickle.dumps(lg)
 
 
 @pytest.fixture
 def ckde_bytes():
-    ckde = CKDE("C", ["A", "B"])
+    ckde = pbn.CKDE("C", ["A", "B"])
     return pickle.dumps(ckde)
 
 
 @pytest.fixture
 def discrete_bytes():
-    discrete = DiscreteFactor("C", ["A", "B"])
+    discrete = pbn.DiscreteFactor("C", ["A", "B"])
     return pickle.dumps(discrete)
 
 
-class NewType(FactorType):
+class NewType(pbn.FactorType):
     def __init__(self, factor_class):
-        FactorType.__init__(self)
+        pbn.FactorType.__init__(self)
         self.factor_class = factor_class
 
     def new_factor(self, model, variable, evidence):
@@ -37,9 +36,9 @@ class NewType(FactorType):
         return "NewType"
 
 
-class NewFactor(Factor):
+class NewFactor(pbn.Factor):
     def __init__(self, variable, evidence):
-        Factor.__init__(self, variable, evidence)
+        pbn.Factor.__init__(self, variable, evidence)
         self._fitted = False
         self.some_fit_data = None
 
@@ -65,9 +64,9 @@ class NewFactor(Factor):
         self.some_fit_data = d["some_fit_data"]
 
 
-class NewFactorBis(Factor):
+class NewFactorBis(pbn.Factor):
     def __init__(self, variable, evidence):
-        Factor.__init__(self, variable, evidence)
+        pbn.Factor.__init__(self, variable, evidence)
         self._fitted = False
         self.some_fit_data = None
 
@@ -94,7 +93,7 @@ class NewFactorBis(Factor):
         return d
 
     def __setstate__(self, d):
-        Factor.__init__(self, d["variable"], d["evidence"])
+        pbn.Factor.__init__(self, d["variable"], d["evidence"])
         self._fitted = d["fitted"]
         self.some_fit_data = d["some_fit_data"]
 
@@ -140,9 +139,7 @@ def test_serialization_unfitted_factor(
     nn = NewFactor("A", [])
     assert loaded_new.type() == nn.type()
 
-    from pybnesian import GaussianNetwork
-
-    dummy_network = GaussianNetwork(["A", "B", "C", "D"])
+    dummy_network = pbn.GaussianNetwork(["A", "B", "C", "D"])
     assert type(loaded_new.type().new_factor(dummy_network, "A", [])) == NewFactor
 
     loaded_newbis = pickle.loads(newbis_bytes)
@@ -165,7 +162,7 @@ def test_serialization_unfitted_factor(
 
 @pytest.fixture
 def lg_fitted_bytes():
-    lg = LinearGaussianCPD("C", ["A", "B"], [1, 2, 3], 0.5)
+    lg = pbn.LinearGaussianCPD("C", ["A", "B"], [1, 2, 3], 0.5)
     return pickle.dumps(lg)
 
 
@@ -175,14 +172,14 @@ def ckde_fitted_bytes():
     data = pd.DataFrame(
         {"A": np.random.rand(10), "B": np.random.rand(10), "C": np.random.rand(10)}
     ).astype(float)
-    ckde = CKDE("C", ["A", "B"])
+    ckde = pbn.CKDE("C", ["A", "B"])
     ckde.fit(data)
     return pickle.dumps(ckde)
 
 
 @pytest.fixture
 def discrete_fitted_bytes():
-    discrete = DiscreteFactor("C", ["A", "B"])
+    discrete = pbn.DiscreteFactor("C", ["A", "B"])
 
     data = pd.DataFrame(
         {

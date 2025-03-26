@@ -5,11 +5,6 @@ import pandas as pd
 import pybnesian as pbn
 import pytest
 from helpers.data import generate_normal_data
-from pybnesian import (
-    ConditionalGaussianNetwork,
-    DynamicGaussianNetwork,
-    GaussianNetwork,
-)
 from scipy.stats import norm
 
 df = generate_normal_data(1000)
@@ -17,7 +12,7 @@ df = generate_normal_data(1000)
 
 def test_create_dbn():
     variables = ["A", "B", "C", "D"]
-    gbn = DynamicGaussianNetwork(variables, 2)
+    gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     assert gbn.markovian_order() == 2
     assert gbn.variables() == ["A", "B", "C", "D"]
@@ -31,10 +26,10 @@ def test_create_dbn():
     assert set(gbn.transition_bn().interface_nodes()) == set(static_nodes)
     assert set(gbn.transition_bn().nodes()) == set(transition_nodes)
 
-    static_bn = GaussianNetwork(static_nodes)
-    transition_bn = ConditionalGaussianNetwork(transition_nodes, static_nodes)
+    static_bn = pbn.GaussianNetwork(static_nodes)
+    transition_bn = pbn.ConditionalGaussianNetwork(transition_nodes, static_nodes)
 
-    gbn2 = DynamicGaussianNetwork(variables, 2, static_bn, transition_bn)
+    gbn2 = pbn.DynamicGaussianNetwork(variables, 2, static_bn, transition_bn)
     assert gbn2.markovian_order() == 2
     assert gbn2.variables() == ["A", "B", "C", "D"]
     assert gbn2.num_variables() == 4
@@ -43,20 +38,20 @@ def test_create_dbn():
     wrong_transition_bn = pbn.ConditionalDiscreteBN(transition_nodes, static_nodes)
 
     with pytest.raises(ValueError) as ex:
-        DynamicGaussianNetwork(variables, 2, static_bn, wrong_transition_bn)
+        pbn.DynamicGaussianNetwork(variables, 2, static_bn, wrong_transition_bn)
     assert "Static and transition Bayesian networks do not have the same type" in str(
         ex.value
     )
 
     wrong_static_bn = pbn.DiscreteBN(static_nodes)
     with pytest.raises(ValueError) as ex:
-        DynamicGaussianNetwork(variables, 2, wrong_static_bn, wrong_transition_bn)
+        pbn.DynamicGaussianNetwork(variables, 2, wrong_static_bn, wrong_transition_bn)
     assert "Bayesian networks are not Gaussian." in str(ex.value)
 
 
 def test_variable_operations_dbn():
     variables = ["A", "B", "C", "D"]
-    gbn = DynamicGaussianNetwork(variables, 2)
+    gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     assert gbn.markovian_order() == 2
     assert gbn.variables() == ["A", "B", "C", "D"]
@@ -91,7 +86,7 @@ def test_variable_operations_dbn():
 
 def test_fit_dbn():
     variables = ["A", "B", "C", "D"]
-    gbn = DynamicGaussianNetwork(variables, 2)
+    gbn = pbn.DynamicGaussianNetwork(variables, 2)
     assert not gbn.fitted()
     assert not gbn.static_bn().fitted()
     assert not gbn.transition_bn().fitted()
@@ -99,7 +94,7 @@ def test_fit_dbn():
     assert gbn.fitted()
 
     ddf = pbn.DynamicDataFrame(df, 2)
-    gbn2 = DynamicGaussianNetwork(variables, 2)
+    gbn2 = pbn.DynamicGaussianNetwork(variables, 2)
     gbn2.static_bn().fit(ddf.static_df())
     assert not gbn2.fitted()
     assert gbn2.static_bn().fitted()
@@ -172,13 +167,13 @@ def numpy_logl(dbn, test_data):
 def test_logl_dbn():
     variables = ["A", "B", "C", "D"]
 
-    static_bn = GaussianNetwork(
+    static_bn = pbn.GaussianNetwork(
         ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
     )
-    static_bn = GaussianNetwork(
+    static_bn = pbn.GaussianNetwork(
         ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
     )
-    gbn = DynamicGaussianNetwork(variables, 2)
+    gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     static_bn = gbn.static_bn()
     static_bn.add_arc("A_t_2", "C_t_2")
@@ -209,13 +204,13 @@ def test_logl_dbn():
 def test_slogl_dbn():
     variables = ["A", "B", "C", "D"]
 
-    static_bn = GaussianNetwork(
+    static_bn = pbn.GaussianNetwork(
         ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
     )
-    static_bn = GaussianNetwork(
+    static_bn = pbn.GaussianNetwork(
         ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
     )
-    gbn = DynamicGaussianNetwork(variables, 2)
+    gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     static_bn = gbn.static_bn()
     static_bn.add_arc("A_t_2", "C_t_2")

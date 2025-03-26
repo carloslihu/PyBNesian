@@ -4,47 +4,37 @@ import pyarrow as pa
 import pybnesian as pbn
 import pytest
 from helpers.data import generate_discrete_data, generate_normal_data_independent
-from pybnesian import (
-    CKDE,
-    BayesianNetwork,
-    BayesianNetworkType,
-    ConditionalBayesianNetwork,
-    DiscreteBN,
-    DiscreteFactor,
-    GaussianNetwork,
-    KDENetwork,
-    LinearGaussianCPD,
-    SemiparametricBN,
-)
 
 
 @pytest.fixture
 def gaussian_bytes():
-    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
+    gaussian = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(gaussian)
 
 
 @pytest.fixture
 def spbn_bytes():
-    spbn = SemiparametricBN(["A", "B", "C", "D"], [("A", "B")], [("B", pbn.CKDEType())])
+    spbn = pbn.SemiparametricBN(
+        ["A", "B", "C", "D"], [("A", "B")], [("B", pbn.CKDEType())]
+    )
     return pickle.dumps(spbn)
 
 
 @pytest.fixture
 def kde_bytes():
-    kde = KDENetwork(["A", "B", "C", "D"], [("A", "B")])
+    kde = pbn.KDENetwork(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(kde)
 
 
 @pytest.fixture
 def discrete_bytes():
-    discrete = DiscreteBN(["A", "B", "C", "D"], [("A", "B")])
+    discrete = pbn.DiscreteBN(["A", "B", "C", "D"], [("A", "B")])
     return pickle.dumps(discrete)
 
 
-class MyRestrictedGaussianNetworkType(BayesianNetworkType):
+class MyRestrictedGaussianNetworkType(pbn.BayesianNetworkType):
     def __init__(self):
-        BayesianNetworkType.__init__(self)
+        pbn.BayesianNetworkType.__init__(self)
 
     def is_homogeneous(self):
         return True
@@ -67,18 +57,20 @@ class MyRestrictedGaussianNetworkType(BayesianNetworkType):
 
 @pytest.fixture
 def genericbn_bytes():
-    gen = BayesianNetwork(
+    gen = pbn.BayesianNetwork(
         MyRestrictedGaussianNetworkType(), ["A", "B", "C", "D"], [("A", "B")]
     )
     return pickle.dumps(gen)
 
 
-class NewBN(BayesianNetwork):
+class NewBN(pbn.BayesianNetwork):
     def __init__(self, variables, arcs=None):
         if arcs is None:
-            BayesianNetwork.__init__(self, MyRestrictedGaussianNetworkType(), variables)
+            pbn.BayesianNetwork.__init__(
+                self, MyRestrictedGaussianNetworkType(), variables
+            )
         else:
-            BayesianNetwork.__init__(
+            pbn.BayesianNetwork.__init__(
                 self, MyRestrictedGaussianNetworkType(), variables, arcs
             )
 
@@ -89,9 +81,9 @@ def newbn_bytes():
     return pickle.dumps(new)
 
 
-class NonHomogeneousType(BayesianNetworkType):
+class NonHomogeneousType(pbn.BayesianNetworkType):
     def __init__(self):
-        BayesianNetworkType.__init__(self)
+        pbn.BayesianNetworkType.__init__(self)
 
     def is_homogeneous(self):
         return False
@@ -112,20 +104,22 @@ class NonHomogeneousType(BayesianNetworkType):
         return "NonHomogeneousType"
 
 
-class OtherBN(BayesianNetwork):
+class OtherBN(pbn.BayesianNetwork):
     def __init__(self, variables, arcs=None, node_types=None):
         if arcs is None:
             if node_types is None:
-                BayesianNetwork.__init__(self, NonHomogeneousType(), variables)
+                pbn.BayesianNetwork.__init__(self, NonHomogeneousType(), variables)
             else:
-                BayesianNetwork.__init__(
+                pbn.BayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, node_types
                 )
         else:
             if node_types is None:
-                BayesianNetwork.__init__(self, NonHomogeneousType(), variables, arcs)
+                pbn.BayesianNetwork.__init__(
+                    self, NonHomogeneousType(), variables, arcs
+                )
             else:
-                BayesianNetwork.__init__(
+                pbn.BayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, arcs, node_types
                 )
 
@@ -214,8 +208,8 @@ def test_serialization_bn_model(
 
 @pytest.fixture
 def gaussian_partial_fit_bytes():
-    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
-    lg = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    gaussian = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
+    lg = pbn.pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
     gaussian.add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -223,11 +217,11 @@ def gaussian_partial_fit_bytes():
 
 @pytest.fixture
 def gaussian_fit_bytes():
-    gaussian = GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
-    lg_a = LinearGaussianCPD("A", [], [0], 0.5)
-    lg_b = LinearGaussianCPD("B", ["A"], [1, 2], 2)
-    lg_c = LinearGaussianCPD("C", [], [2], 1)
-    lg_d = LinearGaussianCPD("D", [], [3], 1.5)
+    gaussian = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B")])
+    lg_a = pbn.LinearGaussianCPD("A", [], [0], 0.5)
+    lg_b = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    lg_c = pbn.LinearGaussianCPD("C", [], [2], 1)
+    lg_d = pbn.LinearGaussianCPD("D", [], [3], 1.5)
     gaussian.add_cpds([lg_a, lg_b, lg_c, lg_d])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -244,7 +238,7 @@ def other_partial_fit_bytes():
             ("D", pbn.DiscreteFactorType()),
         ],
     )
-    lg = LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
     other.add_cpds([lg])
     other.include_cpd = True
     return pickle.dumps(other)
@@ -261,15 +255,15 @@ def other_fit_bytes():
             ("D", pbn.DiscreteFactorType()),
         ],
     )
-    cpd_a = LinearGaussianCPD("A", [], [0], 0.5)
-    cpd_b = LinearGaussianCPD("B", ["A"], [1, 2], 2)
+    cpd_a = pbn.LinearGaussianCPD("A", [], [0], 0.5)
+    cpd_b = pbn.LinearGaussianCPD("B", ["A"], [1, 2], 2)
 
     df_continuous = generate_normal_data_independent(100)
-    cpd_c = CKDE("C", [])
+    cpd_c = pbn.CKDE("C", [])
     cpd_c.fit(df_continuous)
 
     df_discrete = generate_discrete_data(100)
-    cpd_d = DiscreteFactor("D", [])
+    cpd_d = pbn.DiscreteFactor("D", [])
     cpd_d.fit(df_discrete)
 
     other.add_cpds([cpd_a, cpd_b, cpd_c, cpd_d])
@@ -403,20 +397,20 @@ def cond_discrete_bytes():
 
 @pytest.fixture
 def cond_genericbn_bytes():
-    gen = ConditionalBayesianNetwork(
+    gen = pbn.ConditionalBayesianNetwork(
         MyRestrictedGaussianNetworkType(), ["C", "D"], ["A", "B"], [("A", "C")]
     )
     return pickle.dumps(gen)
 
 
-class ConditionalNewBN(ConditionalBayesianNetwork):
+class ConditionalNewBN(pbn.ConditionalBayesianNetwork):
     def __init__(self, variables, interface, arcs=None):
         if arcs is None:
-            ConditionalBayesianNetwork.__init__(
+            pbn.ConditionalBayesianNetwork.__init__(
                 self, MyRestrictedGaussianNetworkType(), variables, interface
             )
         else:
-            ConditionalBayesianNetwork.__init__(
+            pbn.ConditionalBayesianNetwork.__init__(
                 self, MyRestrictedGaussianNetworkType(), variables, interface, arcs
             )
 
@@ -427,24 +421,24 @@ def cond_newbn_bytes():
     return pickle.dumps(new)
 
 
-class ConditionalOtherBN(ConditionalBayesianNetwork):
+class ConditionalOtherBN(pbn.ConditionalBayesianNetwork):
     def __init__(self, variables, interface, arcs=None, node_types=None):
         if arcs is None:
             if node_types is None:
-                ConditionalBayesianNetwork.__init__(
+                pbn.ConditionalBayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, interface
                 )
             else:
-                ConditionalBayesianNetwork.__init__(
+                pbn.ConditionalBayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, interface, node_types
                 )
         else:
             if node_types is None:
-                ConditionalBayesianNetwork.__init__(
+                pbn.ConditionalBayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, interface, arcs
                 )
             else:
-                ConditionalBayesianNetwork.__init__(
+                pbn.ConditionalBayesianNetwork.__init__(
                     self, NonHomogeneousType(), variables, interface, arcs, node_types
                 )
 
@@ -540,7 +534,7 @@ def test_serialization_conditional_bn_model(
 @pytest.fixture
 def cond_gaussian_partial_fit_bytes():
     gaussian = pbn.ConditionalGaussianNetwork(["C", "D"], ["A", "B"], [("A", "C")])
-    lg = LinearGaussianCPD("C", ["A"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("C", ["A"], [1, 2], 2)
     gaussian.add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -549,8 +543,8 @@ def cond_gaussian_partial_fit_bytes():
 @pytest.fixture
 def cond_gaussian_fit_bytes():
     gaussian = pbn.ConditionalGaussianNetwork(["C", "D"], ["A", "B"], [("A", "C")])
-    lg_c = LinearGaussianCPD("C", ["A"], [1, 2], 2)
-    lg_d = LinearGaussianCPD("D", [], [3], 1.5)
+    lg_c = pbn.LinearGaussianCPD("C", ["A"], [1, 2], 2)
+    lg_d = pbn.LinearGaussianCPD("D", [], [3], 1.5)
     gaussian.add_cpds([lg_c, lg_d])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -564,7 +558,7 @@ def cond_other_partial_fit_bytes():
         [("A", "C")],
         [("C", pbn.CKDEType()), ("D", pbn.LinearGaussianCPDType())],
     )
-    lg = LinearGaussianCPD("D", [], [3], 1.5)
+    lg = pbn.LinearGaussianCPD("D", [], [3], 1.5)
     other.add_cpds([lg])
     other.include_cpd = True
     return pickle.dumps(other)
@@ -578,14 +572,14 @@ def cond_other_fit_bytes():
         [("A", "C")],
         [("C", pbn.CKDEType()), ("D", pbn.DiscreteFactorType())],
     )
-    cpd_c = CKDE("C", ["A"])
-    cpd_d = DiscreteFactor("D", [])
+    cpd_c = pbn.CKDE("C", ["A"])
+    cpd_d = pbn.DiscreteFactor("D", [])
 
     df_continuous = generate_normal_data_independent(100)
     cpd_c.fit(df_continuous)
 
     df_discrete = generate_discrete_data(100)
-    cpd_d = DiscreteFactor("D", [])
+    cpd_d = pbn.DiscreteFactor("D", [])
     cpd_d.fit(df_discrete)
 
     other.add_cpds([cpd_c, cpd_d])
@@ -822,9 +816,9 @@ def dyn_gaussian_partial_fit_bytes():
     gaussian = pbn.DynamicGaussianNetwork(["A", "B", "C", "D"], 2)
     gaussian.static_bn().add_arc("A_t_2", "D_t_1")
     gaussian.transition_bn().add_arc("C_t_2", "B_t_0")
-    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     gaussian.static_bn().add_cpds([lg])
-    lg = LinearGaussianCPD("B_t_0", ["C_t_2"], [3, 4], 5)
+    lg = pbn.LinearGaussianCPD("B_t_0", ["C_t_2"], [3, 4], 5)
     gaussian.transition_bn().add_cpds([lg])
     gaussian.include_cpd = True
     return pickle.dumps(gaussian)
@@ -856,7 +850,7 @@ def dyn_other_partial_fit_bytes():
             ("D_t_1", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     other_static.add_cpds([lg])
 
     other_transition = ConditionalOtherBN(
@@ -869,7 +863,7 @@ def dyn_other_partial_fit_bytes():
             ("D_t_0", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
+    lg = pbn.LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
     other_transition.add_cpds([lg])
 
     assert other_static.type() == other_transition.type()
@@ -895,7 +889,7 @@ def dyn_other_fit_bytes():
             ("D_t_1", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
+    lg = pbn.LinearGaussianCPD("D_t_1", ["A_t_2"], [1, 2], 2)
     other_static.add_cpds([lg])
 
     other_transition = ConditionalOtherBN(
@@ -908,7 +902,7 @@ def dyn_other_fit_bytes():
             ("D_t_0", pbn.LinearGaussianCPDType()),
         ],
     )
-    lg = LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
+    lg = pbn.LinearGaussianCPD("D_t_0", ["A_t_2"], [3, 4], 1.5)
     other_transition.add_cpds([lg])
 
     assert other_static.type() == other_transition.type()

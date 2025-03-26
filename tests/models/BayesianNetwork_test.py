@@ -2,64 +2,105 @@ import numpy as np
 import pybnesian as pbn
 import pytest
 from helpers.data import DATA_SIZE, generate_normal_data
-from pybnesian import BayesianNetwork, GaussianNetwork
 
 df = generate_normal_data(DATA_SIZE)
 
 
-def test_create_bn():
-    gbn = GaussianNetwork(["A", "B", "C", "D"])
+def test_create_gaussian_bn():
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
 
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 0
     assert gbn.nodes() == ["A", "B", "C", "D"]
 
-    gbn = GaussianNetwork(["A", "B", "C", "D"], [("A", "C")])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "C")])
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 1
     assert gbn.nodes() == ["A", "B", "C", "D"]
 
-    gbn = GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+    gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 3
     assert gbn.nodes() == ["A", "C", "B", "D"]
 
     with pytest.raises(TypeError) as ex:
-        gbn = GaussianNetwork(["A", "B", "C"], [("A", "C", "B")])
+        gbn = pbn.GaussianNetwork(["A", "B", "C"], [("A", "C", "B")])
     assert "incompatible constructor arguments" in str(ex.value)
 
     with pytest.raises(IndexError) as ex:
-        gbn = GaussianNetwork(["A", "B", "C"], [("A", "D")])
+        gbn = pbn.GaussianNetwork(["A", "B", "C"], [("A", "D")])
     assert "not present in the graph" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn = GaussianNetwork([("A", "B"), ("B", "C"), ("C", "A")])
+        gbn = pbn.GaussianNetwork([("A", "B"), ("B", "C"), ("C", "A")])
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn = GaussianNetwork(
+        gbn = pbn.GaussianNetwork(
             ["A", "B", "C", "D"], [("A", "B"), ("B", "C"), ("C", "A")]
         )
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn = BayesianNetwork(
+        gbn = pbn.BayesianNetwork(
             pbn.GaussianNetworkType(), ["A", "B", "C", "D"], [], [("A", pbn.CKDEType())]
         )
     assert "Wrong factor type" in str(ex.value)
 
 
-def gbn_generator():
-    # Test different Networks created with different constructors.
-    gbn = GaussianNetwork(["A", "B", "C", "D"])
-    yield gbn
-    gbn = GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
-    yield gbn
-    gbn = GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
-    yield gbn
+def test_create_discrete_bn():
+    dbn = pbn.DiscreteBN(["A", "B", "C", "D"])
+
+    assert dbn.num_nodes() == 4
+    assert dbn.num_arcs() == 0
+    assert dbn.nodes() == ["A", "B", "C", "D"]
+
+    dbn = pbn.DiscreteBN(["A", "B", "C", "D"], [("A", "C")])
+    assert dbn.num_nodes() == 4
+    assert dbn.num_arcs() == 1
+    assert dbn.nodes() == ["A", "B", "C", "D"]
+
+    dbn = pbn.DiscreteBN([("A", "C"), ("B", "D"), ("C", "D")])
+    assert dbn.num_nodes() == 4
+    assert dbn.num_arcs() == 3
+    assert dbn.nodes() == ["A", "C", "B", "D"]
+
+    with pytest.raises(TypeError) as ex:
+        dbn = pbn.DiscreteBN(["A", "B", "C"], [("A", "C", "B")])
+    assert "incompatible constructor arguments" in str(ex.value)
+
+    with pytest.raises(IndexError) as ex:
+        dbn = pbn.DiscreteBN(["A", "B", "C"], [("A", "D")])
+    assert "not present in the graph" in str(ex.value)
+
+    with pytest.raises(ValueError) as ex:
+        dbn = pbn.DiscreteBN([("A", "B"), ("B", "C"), ("C", "A")])
+    assert "must be a DAG" in str(ex.value)
+
+    with pytest.raises(ValueError) as ex:
+        dbn = pbn.DiscreteBN(["A", "B", "C", "D"], [("A", "B"), ("B", "C"), ("C", "A")])
+    assert "must be a DAG" in str(ex.value)
+
+    with pytest.raises(ValueError) as ex:
+        dbn = pbn.BayesianNetwork(
+            pbn.DiscreteBNType(),
+            ["A", "B", "C", "D"],
+            [],
+            [("A", pbn.CKDEType())],
+        )
+    assert "Wrong factor type" in str(ex.value)
 
 
 def test_nodes_util():
+    def gbn_generator():
+        # Test different Networks created with different constructors.
+        gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
+        yield gbn
+        gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+        yield gbn
+        gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
+        yield gbn
+
     for gbn in gbn_generator():
         assert gbn.num_nodes() == 4
 
@@ -84,7 +125,7 @@ def test_nodes_util():
 
 
 def test_parent_children():
-    gbn = GaussianNetwork(["A", "B", "C", "D"])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
 
     assert gbn.num_parents("A") == 0
     assert gbn.num_parents("B") == 0
@@ -101,7 +142,7 @@ def test_parent_children():
     assert gbn.num_children("C") == 0
     assert gbn.num_children("D") == 0
 
-    gbn = GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+    gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
 
     assert gbn.num_parents("A") == 0
     assert gbn.num_parents("B") == 0
@@ -118,7 +159,7 @@ def test_parent_children():
     assert gbn.num_children("C") == 1
     assert gbn.num_children("D") == 0
 
-    gbn = GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
 
     assert gbn.num_parents("A") == 0
     assert gbn.num_parents("B") == 1
@@ -137,7 +178,7 @@ def test_parent_children():
 
 
 def test_arcs():
-    gbn = GaussianNetwork(["A", "B", "C", "D"])
+    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
 
     assert gbn.num_arcs() == 0
     assert gbn.arcs() == []
@@ -229,7 +270,7 @@ def test_arcs():
 
 
 def test_bn_fit():
-    gbn = GaussianNetwork(
+    gbn = pbn.GaussianNetwork(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
@@ -259,7 +300,7 @@ def test_bn_fit():
 
 
 def test_add_cpds():
-    gbn = GaussianNetwork(
+    gbn = pbn.GaussianNetwork(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
@@ -322,7 +363,7 @@ def test_add_cpds():
 
 
 def test_bn_logl():
-    gbn = GaussianNetwork(
+    gbn = pbn.GaussianNetwork(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
@@ -349,7 +390,7 @@ def test_bn_logl():
 
 
 def test_bn_sample():
-    gbn = GaussianNetwork(
+    gbn = pbn.GaussianNetwork(
         ["A", "C", "B", "D"],
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
     )

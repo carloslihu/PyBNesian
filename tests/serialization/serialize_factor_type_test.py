@@ -1,9 +1,7 @@
 import pickle
 
-import pytest
-
 import pybnesian as pbn
-from pybnesian import FactorType
+import pytest
 
 
 @pytest.fixture
@@ -24,14 +22,14 @@ def discrete_type_bytes():
     return pickle.dumps(discrete)
 
 
-class NewType(FactorType):
+class NewType(pbn.FactorType):
     def __init__(self):
-        FactorType.__init__(self)
+        pbn.FactorType.__init__(self)
 
 
-class OtherType(FactorType):
+class OtherType(pbn.FactorType):
     def __init__(self):
-        FactorType.__init__(self)
+        pbn.FactorType.__init__(self)
 
 
 @pytest.fixture

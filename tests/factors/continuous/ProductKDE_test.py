@@ -3,7 +3,6 @@ import pyarrow as pa
 import pybnesian as pbn
 import pytest
 from helpers.data import generate_normal_data
-from pybnesian import BandwidthSelector
 from scipy.stats import gaussian_kde
 
 SIZE = 500
@@ -104,9 +103,9 @@ def test_productkde_bandwidth():
     assert cpd.bandwidth == np.asarray([1]), "Could not change bandwidth."
 
 
-class UnitaryBandwidth(BandwidthSelector):
+class UnitaryBandwidth(pbn.BandwidthSelector):
     def __init__(self):
-        BandwidthSelector.__init__(self)
+        pbn.BandwidthSelector.__init__(self)
 
     def diag_bandwidth(self, df, variables):
         return np.ones((len(variables),))

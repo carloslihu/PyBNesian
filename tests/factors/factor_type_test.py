@@ -1,6 +1,5 @@
 import pybnesian as pbn
 import pytest
-from pybnesian import Factor, FactorType
 
 
 def test_factor_type():
@@ -37,9 +36,9 @@ def test_factor_type():
 
 
 def test_new_factor_type():
-    class A(FactorType):
+    class A(pbn.FactorType):
         def __init__(self):
-            FactorType.__init__(self)
+            pbn.FactorType.__init__(self)
 
     a1 = A()
     a2 = A()
@@ -49,9 +48,9 @@ def test_new_factor_type():
     assert a1 == a3
     assert a2 == a3
 
-    class B(FactorType):
+    class B(pbn.FactorType):
         def __init__(self):
-            FactorType.__init__(self)
+            pbn.FactorType.__init__(self)
 
     b1 = B()
     b2 = B()
@@ -65,16 +64,16 @@ def test_new_factor_type():
 
 
 def test_factor_defined_factor_type():
-    class F_type(FactorType):
+    class F_type(pbn.FactorType):
         def __init__(self):
-            FactorType.__init__(self)
+            pbn.FactorType.__init__(self)
 
         def __str__(self):
             return "FType"
 
-    class F(Factor):
+    class F(pbn.Factor):
         def __init__(self, variable, evidence):
-            Factor.__init__(self, variable, evidence)
+            pbn.Factor.__init__(self, variable, evidence)
 
         def type(self):
             return F_type()
@@ -92,13 +91,13 @@ def test_factor_defined_factor_type():
     dummy_network = pbn.GaussianNetwork(["A", "B", "C", "D"])
     with pytest.raises(RuntimeError) as ex:
         f1.type().new_factor(dummy_network, "D", ["A", "B", "C"])
-    assert 'Tried to call pure virtual function "FactorType::new_factor"' in str(
+    assert 'Tried to call pure virtual function "pbn.FactorType::new_factor"' in str(
         ex.value
     )
 
-    class G_type(FactorType):
+    class G_type(pbn.FactorType):
         def __init__(self):
-            FactorType.__init__(self)
+            pbn.FactorType.__init__(self)
 
         def new_factor(self, model, variable, evidence):
             return G(variable, evidence)
@@ -106,9 +105,9 @@ def test_factor_defined_factor_type():
         def __str__(self):
             return "GType"
 
-    class G(Factor):
+    class G(pbn.Factor):
         def __init__(self, variable, evidence):
-            Factor.__init__(self, variable, evidence)
+            pbn.Factor.__init__(self, variable, evidence)
 
         def type(self):
             return G_type()

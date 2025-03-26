@@ -2,13 +2,12 @@ import numpy as np
 import pybnesian as pbn
 import pytest
 from helpers.data import DATA_SIZE, generate_normal_data
-from pybnesian import CKDE, LinearGaussianCPD, SemiparametricBN
 
 df = generate_normal_data(DATA_SIZE)
 
 
 def test_create_spbn():
-    spbn = SemiparametricBN(["A", "B", "C", "D"])
+    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"])
     assert spbn.num_nodes() == 4
     assert spbn.num_arcs() == 0
     assert spbn.nodes() == ["A", "B", "C", "D"]
@@ -16,7 +15,7 @@ def test_create_spbn():
     for n in spbn.nodes():
         assert spbn.node_type(n) == pbn.UnknownFactorType()
 
-    spbn = SemiparametricBN(["A", "B", "C", "D"], [("A", "C")])
+    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"], [("A", "C")])
     assert spbn.num_nodes() == 4
     assert spbn.num_arcs() == 1
     assert spbn.nodes() == ["A", "B", "C", "D"]
@@ -24,7 +23,7 @@ def test_create_spbn():
     for n in spbn.nodes():
         assert spbn.node_type(n) == pbn.UnknownFactorType()
 
-    spbn = SemiparametricBN([("A", "C"), ("B", "D"), ("C", "D")])
+    spbn = pbn.SemiparametricBN([("A", "C"), ("B", "D"), ("C", "D")])
     assert spbn.num_nodes() == 4
     assert spbn.num_arcs() == 3
     assert spbn.nodes() == ["A", "C", "B", "D"]
@@ -33,19 +32,19 @@ def test_create_spbn():
         assert spbn.node_type(n) == pbn.UnknownFactorType()
 
     with pytest.raises(TypeError) as ex:
-        spbn = SemiparametricBN(["A", "B", "C"], [("A", "C", "B")])
+        spbn = pbn.SemiparametricBN(["A", "B", "C"], [("A", "C", "B")])
     assert "incompatible constructor arguments" in str(ex.value)
 
     with pytest.raises(IndexError) as ex:
-        spbn = SemiparametricBN(["A", "B", "C"], [("A", "D")])
+        spbn = pbn.SemiparametricBN(["A", "B", "C"], [("A", "D")])
     assert "not present in the graph" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        spbn = SemiparametricBN([("A", "B"), ("B", "C"), ("C", "A")])
+        spbn = pbn.SemiparametricBN([("A", "B"), ("B", "C"), ("C", "A")])
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        spbn = SemiparametricBN(
+        spbn = pbn.SemiparametricBN(
             ["A", "B", "C", "D"], [("A", "B"), ("B", "C"), ("C", "A")]
         )
     assert "must be a DAG" in str(ex.value)
@@ -57,7 +56,7 @@ def test_create_spbn():
         "D": pbn.UnknownFactorType(),
     }
 
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         ["A", "B", "C", "D"], [("A", pbn.CKDEType()), ("C", pbn.CKDEType())]
     )
     assert spbn.num_nodes() == 4
@@ -67,7 +66,7 @@ def test_create_spbn():
     for n in spbn.nodes():
         assert spbn.node_type(n) == expected_node_type[n]
 
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         ["A", "B", "C", "D"],
         [("A", "C")],
         [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
@@ -79,7 +78,7 @@ def test_create_spbn():
     for n in spbn.nodes():
         assert spbn.node_type(n) == expected_node_type[n]
 
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         [("A", "C"), ("B", "D"), ("C", "D")],
         [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
     )
@@ -91,7 +90,7 @@ def test_create_spbn():
         assert spbn.node_type(n) == expected_node_type[n]
 
     with pytest.raises(TypeError) as ex:
-        spbn = SemiparametricBN(
+        spbn = pbn.SemiparametricBN(
             ["A", "B", "C"],
             [("A", "C", "B")],
             [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
@@ -99,7 +98,7 @@ def test_create_spbn():
     assert "incompatible constructor arguments" in str(ex.value)
 
     with pytest.raises(IndexError) as ex:
-        spbn = SemiparametricBN(
+        spbn = pbn.SemiparametricBN(
             ["A", "B", "C"],
             [("A", "D")],
             [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
@@ -107,14 +106,14 @@ def test_create_spbn():
     assert "not present in the graph" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        spbn = SemiparametricBN(
+        spbn = pbn.SemiparametricBN(
             [("A", "B"), ("B", "C"), ("C", "A")],
             [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
         )
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        spbn = SemiparametricBN(
+        spbn = pbn.SemiparametricBN(
             ["A", "B", "C", "D"],
             [("A", "B"), ("B", "C"), ("C", "A")],
             [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
@@ -123,7 +122,7 @@ def test_create_spbn():
 
 
 def test_node_type():
-    spbn = SemiparametricBN(["A", "B", "C", "D"])
+    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"])
     assert spbn.num_nodes() == 4
     assert spbn.num_arcs() == 0
     assert spbn.nodes() == ["A", "B", "C", "D"]
@@ -138,7 +137,7 @@ def test_node_type():
 
 
 def test_fit():
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 
@@ -153,7 +152,7 @@ def test_fit():
         cpd = spbn.cpd(n)
         assert cpd.type() == pbn.LinearGaussianCPDType()
 
-        assert type(cpd) == pbn.LinearGaussianCPD
+        assert type(cpd) == pbn.pbn.LinearGaussianCPD
         assert cpd.variable() == n
         assert set(cpd.evidence()) == set(spbn.parents(n))
 
@@ -162,12 +161,12 @@ def test_fit():
     spbn.remove_arc("A", "B")
 
     cpd_b = spbn.cpd("B")
-    assert type(cpd_b) == pbn.LinearGaussianCPD
+    assert type(cpd_b) == pbn.pbn.LinearGaussianCPD
     assert cpd_b.evidence != spbn.parents("B")
 
     spbn.fit(df)
     cpd_b = spbn.cpd("B")
-    assert type(cpd_b) == pbn.LinearGaussianCPD
+    assert type(cpd_b) == pbn.pbn.LinearGaussianCPD
     assert cpd_b.evidence() == spbn.parents("B")
 
     spbn.set_node_type("C", pbn.CKDEType())
@@ -182,7 +181,7 @@ def test_fit():
 
 
 def test_cpd():
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
         [("D", pbn.CKDEType())],
     )
@@ -205,21 +204,21 @@ def test_cpd():
 
 
 def test_add_cpds():
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
         [("D", pbn.CKDEType())],
     )
 
     assert spbn.node_type("A") == pbn.UnknownFactorType()
-    spbn.add_cpds([CKDE("A", [])])
+    spbn.add_cpds([pbn.CKDE("A", [])])
     assert spbn.node_type("A") == pbn.CKDEType()
 
     with pytest.raises(ValueError) as ex:
-        spbn.add_cpds([LinearGaussianCPD("D", ["A", "B", "C"])])
+        spbn.add_cpds([pbn.LinearGaussianCPD("D", ["A", "B", "C"])])
     assert "Bayesian network expects type" in str(ex.value)
 
-    lg = LinearGaussianCPD("B", ["A"], [2.5, 1.65], 4)
-    ckde = CKDE("D", ["A", "B", "C"])
+    lg = pbn.LinearGaussianCPD("B", ["A"], [2.5, 1.65], 4)
+    ckde = pbn.CKDE("D", ["A", "B", "C"])
     assert lg.fitted()
     assert not ckde.fitted()
 
@@ -246,7 +245,7 @@ def test_add_cpds():
 
 
 def test_logl():
-    spbn = SemiparametricBN(
+    spbn = pbn.SemiparametricBN(
         [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
     )
 

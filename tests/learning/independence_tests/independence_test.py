@@ -2,6 +2,7 @@ import itertools
 
 import numpy as np
 import pandas as pd
+import pybnesian as pbn
 from helpers.data import (
     DATA_SIZE,
     N_NEIGHBORS,
@@ -10,13 +11,6 @@ from helpers.data import (
     generate_discrete_data_independent,
     generate_normal_data,
     generate_normal_data_independent,
-)
-from pybnesian import (
-    ChiSquare,
-    KMutualInformation,
-    LinearCorrelation,
-    MutualInformation,
-    RCoT,
 )
 from scipy.stats import pearsonr
 
@@ -43,8 +37,8 @@ independent_discrete_data = generate_discrete_data_independent(DATA_SIZE, SEED)
 
 def test_chi_square():
     """Test the chi-square independence test with discrete data"""
-    chi_square = ChiSquare(discrete_data)
-    independent_chi_square = ChiSquare(independent_discrete_data)
+    chi_square = pbn.ChiSquare(discrete_data)
+    independent_chi_square = pbn.ChiSquare(independent_discrete_data)
 
     p_value = chi_square.pvalue("A", "B")
     independent_p_value = independent_chi_square.pvalue("A", "B")
@@ -61,8 +55,8 @@ def test_linear_correlation():
     independent_df = independent_data[["A", "B"]]
 
     # Pybnesian Linear correlation
-    linear_correlation = LinearCorrelation(df)
-    independent_linear_correlation = LinearCorrelation(independent_df)
+    linear_correlation = pbn.LinearCorrelation(df)
+    independent_linear_correlation = pbn.LinearCorrelation(independent_df)
     pvalue = linear_correlation.pvalue("A", "B")
     independent_pvalue = independent_linear_correlation.pvalue("A", "B")
 
@@ -99,8 +93,8 @@ def test_linear_correlation():
 
 def test_mutual_info():
     """Test the mutual information independence test with normal data"""
-    mutual_info = MutualInformation(data)
-    independent_mutual_info = MutualInformation(independent_data)
+    mutual_info = pbn.MutualInformation(data)
+    independent_mutual_info = pbn.MutualInformation(independent_data)
 
     # Check whether the mutual information is higher when the variables are dependent
     mutual_info_value = mutual_info.mi("A", "B")
@@ -116,8 +110,8 @@ def test_mutual_info():
 
 def test_k_mutual_info():
     """Test the k-nearest neighbors mutual information independence test with normal data"""
-    k_mutual_info = KMutualInformation(data, k=N_NEIGHBORS)
-    independent_k_mutual_info = KMutualInformation(independent_data, k=N_NEIGHBORS)
+    k_mutual_info = pbn.KMutualInformation(data, k=N_NEIGHBORS)
+    independent_k_mutual_info = pbn.KMutualInformation(independent_data, k=N_NEIGHBORS)
 
     # Check whether the mutual information is higher when the variables are dependent
     k_mutual_info_value = k_mutual_info.mi("A", "B")
@@ -148,9 +142,11 @@ def test_k_mutual_info():
 
 
 def test_rcot():
-    """Test the Randomized Conditional Correlation Test (RCoT) independence test with normal data"""
-    rcot = RCoT(data, random_fourier_xy=5, random_fourier_z=100)
-    independent_rcot = RCoT(independent_data, random_fourier_xy=5, random_fourier_z=100)
+    """Test the Randomized Conditional Correlation Test (pbn.RCoT) independence test with normal data"""
+    rcot = pbn.RCoT(data, random_fourier_xy=5, random_fourier_z=100)
+    independent_rcot = pbn.RCoT(
+        independent_data, random_fourier_xy=5, random_fourier_z=100
+    )
     p_value = rcot.pvalue("A", "B")
     independent_p_value = independent_rcot.pvalue("A", "B")
 

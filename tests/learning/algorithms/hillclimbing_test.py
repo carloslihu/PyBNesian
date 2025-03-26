@@ -1,11 +1,52 @@
 import numpy as np
 import pybnesian as pbn
 from helpers.data import generate_normal_data
-from pybnesian import BayesianNetwork, BayesianNetworkType
 
 df = generate_normal_data(1000)
+
+
 # TODO: Add tests for normal data with dependencies
 # dep_df = generate_normal_data_dep(1000)
+
+
+class MyRestrictedGaussianNetworkType(pbn.BayesianNetworkType):
+    def __init__(self):
+        pbn.BayesianNetworkType.__init__(self)
+
+    def is_homogeneous(self):
+        return True
+
+    def default_node_type(self):
+        return pbn.LinearGaussianCPDType()
+
+    def can_have_arc(self, model, source, target):
+        return "A" in source
+
+    def new_bn(self, nodes):
+        return NewBN(nodes)
+
+    def __str__(self):
+        return "MyRestrictedGaussianNetworkType"
+
+
+class NewBN(pbn.BayesianNetwork):
+    def __init__(self, variables, arcs=None):
+        if arcs is None:
+            pbn.BayesianNetwork.__init__(
+                self, MyRestrictedGaussianNetworkType(), variables
+            )
+        else:
+            pbn.BayesianNetwork.__init__(
+                self, MyRestrictedGaussianNetworkType(), variables, arcs
+            )
+
+        self.extra_data = "extra"
+
+    def __getstate_extra__(self):
+        return self.extra_data
+
+    def __setstate_extra__(self, extra):
+        self.extra_data = extra
 
 
 def test_hc_estimate():
@@ -209,6 +250,19 @@ def test_hc_shortcut_function():
     assert type(model) == NewBN
 
 
+def test_newbn_estimate_validation():
+    start = NewBN(["A", "B", "C", "D"])
+    hc = pbn.GreedyHillClimbing()
+    arc = pbn.ArcOperatorSet()
+    bic = pbn.BIC(df)
+
+    estimated = hc.estimate(arc, bic, start)
+
+    assert type(start) == type(estimated)
+    assert estimated.extra_data == "extra"
+
+
+# TODO: Test for when one variable has 0 variance in k-fold cross-validation for CKDEType
 # # NOTE: Deprecated test for PyBNesian with full covariance matrices
 # def test_hc_arc_singular_covariance():
 #     """Function to test if with the GBN, KDE and SPBN, the HC algorithm raises an exception when the covariance matrix is singular. Then we check if the learnt model is valid."""
@@ -254,56 +308,3 @@ def test_hc_shortcut_function():
 #     assert np.count_nonzero(np.isnan(spbn.logl(dep_df))) == 0
 #     for c in column_names:
 #         print(f"{spbn.cpd(c)}")
-
-
-# TODO: Test for when one variable has 0 variance in k-fold cross-validation for CKDEType
-
-
-class MyRestrictedGaussianNetworkType(BayesianNetworkType):
-    def __init__(self):
-        BayesianNetworkType.__init__(self)
-
-    def is_homogeneous(self):
-        return True
-
-    def default_node_type(self):
-        return pbn.LinearGaussianCPDType()
-
-    def can_have_arc(self, model, source, target):
-        return "A" in source
-
-    def new_bn(self, nodes):
-        return NewBN(nodes)
-
-    def __str__(self):
-        return "MyRestrictedGaussianNetworkType"
-
-
-class NewBN(BayesianNetwork):
-    def __init__(self, variables, arcs=None):
-        if arcs is None:
-            BayesianNetwork.__init__(self, MyRestrictedGaussianNetworkType(), variables)
-        else:
-            BayesianNetwork.__init__(
-                self, MyRestrictedGaussianNetworkType(), variables, arcs
-            )
-
-        self.extra_data = "extra"
-
-    def __getstate_extra__(self):
-        return self.extra_data
-
-    def __setstate_extra__(self, extra):
-        self.extra_data = extra
-
-
-def test_newbn_estimate_validation():
-    start = NewBN(["A", "B", "C", "D"])
-    hc = pbn.GreedyHillClimbing()
-    arc = pbn.ArcOperatorSet()
-    bic = pbn.BIC(df)
-
-    estimated = hc.estimate(arc, bic, start)
-
-    assert type(start) == type(estimated)
-    assert estimated.extra_data == "extra"
