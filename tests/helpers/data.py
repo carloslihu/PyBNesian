@@ -373,6 +373,84 @@ def generate_hybrid_data_independent(size: int, seed: int = SEED) -> pd.DataFram
     return df
 
 
+def generate_discrete_data_classification(size: int, seed: int = SEED) -> pd.DataFrame:
+    """Generates a DataFrame of discrete data with dependent variables and a true label.
+    The relationships are as follows:
+    - TRUE_LABEL ~ Categorical(0.3, 0.4, 0.3)
+    - A ~ Categorical(0.6, 0.4) if TRUE_LABEL = class1, else Categorical(0.8, 0.2) if TRUE_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_LABEL = class3
+    - B ~ Categorical(0.5, 0.3, 0.2) if TRUE_LABEL = class1, else Categorical(0.2, 0.5, 0.3) if TRUE_LABEL = class2, else Categorical(0.3, 0.3, 0.4) if TRUE_LABEL = class3
+    - C ~ Categorical(0.7, 0.3) if TRUE_LABEL = class1, else Categorical(0.4, 0.6) if TRUE_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_LABEL = class3
+
+    Args:
+        size (int): The sample size.
+        seed (int, optional): The seed for random sampling. Defaults to 0.
+
+    Returns:
+        pd.DataFrame: The DataFrame.
+    """
+    np.random.seed(seed)
+
+    class_dict = np.asarray(["class1", "class2", "class3"])
+    class_values = class_dict[
+        np.random.choice(class_dict.size, size, p=[0.3, 0.4, 0.3])
+    ]
+
+    a_dict = np.asarray(["A1", "A2"])
+    b_dict = np.asarray(["B1", "B2", "B3"])
+    c_dict = np.asarray(["C1", "C2"])
+
+    a_values = np.empty(size, dtype=object)
+    b_values = np.empty(size, dtype=object)
+    c_values = np.empty(size, dtype=object)
+
+    # Indices
+    class1_indices = class_values == "class1"
+    class2_indices = class_values == "class2"
+    class3_indices = class_values == "class3"
+
+    # Sampling
+    a_values[class1_indices] = a_dict[
+        np.random.choice(a_dict.size, class1_indices.sum(), p=[0.6, 0.4])
+    ]
+    a_values[class2_indices] = a_dict[
+        np.random.choice(a_dict.size, class2_indices.sum(), p=[0.8, 0.2])
+    ]
+    a_values[class3_indices] = a_dict[
+        np.random.choice(a_dict.size, class3_indices.sum(), p=[0.5, 0.5])
+    ]
+
+    b_values[class1_indices] = b_dict[
+        np.random.choice(b_dict.size, class1_indices.sum(), p=[0.5, 0.3, 0.2])
+    ]
+    b_values[class2_indices] = b_dict[
+        np.random.choice(b_dict.size, class2_indices.sum(), p=[0.2, 0.5, 0.3])
+    ]
+    b_values[class3_indices] = b_dict[
+        np.random.choice(b_dict.size, class3_indices.sum(), p=[0.3, 0.3, 0.4])
+    ]
+
+    c_values[class1_indices] = c_dict[
+        np.random.choice(c_dict.size, class1_indices.sum(), p=[0.7, 0.3])
+    ]
+    c_values[class2_indices] = c_dict[
+        np.random.choice(c_dict.size, class2_indices.sum(), p=[0.4, 0.6])
+    ]
+    c_values[class3_indices] = c_dict[
+        np.random.choice(c_dict.size, class3_indices.sum(), p=[0.5, 0.5])
+    ]
+
+    # DataFrame
+    df = pd.DataFrame(
+        {
+            TRUE_LABEL: pd.Series(class_values, dtype="category"),
+            "A": pd.Series(a_values, dtype="category"),
+            "B": pd.Series(b_values, dtype="category"),
+            "C": pd.Series(c_values, dtype="category"),
+        }
+    )
+    return df
+
+
 def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of normally distributed data with linear Gaussian relationships and a true label.
     The relationships are as follows:
