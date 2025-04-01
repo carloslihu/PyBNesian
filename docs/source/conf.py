@@ -19,7 +19,7 @@
 
 project = "PyBNesian"
 copyright = "2024, David Atienza"
-author = "David Atienza"
+author = "David Atienza, Carlos Li Hu"
 
 # The full version, including alpha/beta/rc tags
 version = "0.5.1"
