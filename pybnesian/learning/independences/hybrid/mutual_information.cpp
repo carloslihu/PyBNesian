@@ -1457,7 +1457,7 @@ double MutualInformation::cmi_discrete_discrete(const std::string& x,
     }
 
     // mi contains N*MI(X; Y).
-    return std::max(mi, util::machine_tol);;
+    return std::max(mi, util::machine_tol);
 }
 
 double MutualInformation::cmi_general_both_discrete(const std::string& x,
