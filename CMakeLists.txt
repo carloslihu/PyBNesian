@@ -14,6 +14,16 @@ if(UNIX)
     set(CMAKE_CXX_COMPILER "g++")
 endif()
 
+# Enable ccache if available
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+else()
+    message(STATUS "ccache not found. Compilation will proceed without caching.")
+endif()
+
 find_package(Git REQUIRED)
 message("Git executable: ${GIT_EXECUTABLE}")
 
