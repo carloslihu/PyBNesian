@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 # Constants
-TRUE_LABEL = "attack_label"
+TRUE_CLASS_LABEL = "attack_label"
 SUPER_PARENT = "A"
 DATA_SIZE = 10000
 SAMPLE_SIZE = 100
@@ -376,10 +376,10 @@ def generate_hybrid_data_independent(size: int, seed: int = SEED) -> pd.DataFram
 def generate_discrete_data_classification(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of discrete data with dependent variables and a true label.
     The relationships are as follows:
-    - TRUE_LABEL ~ Categorical(0.3, 0.4, 0.3)
-    - A ~ Categorical(0.6, 0.4) if TRUE_LABEL = class1, else Categorical(0.8, 0.2) if TRUE_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_LABEL = class3
-    - B ~ Categorical(0.5, 0.3, 0.2) if TRUE_LABEL = class1, else Categorical(0.2, 0.5, 0.3) if TRUE_LABEL = class2, else Categorical(0.3, 0.3, 0.4) if TRUE_LABEL = class3
-    - C ~ Categorical(0.7, 0.3) if TRUE_LABEL = class1, else Categorical(0.4, 0.6) if TRUE_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_LABEL = class3
+    - TRUE_CLASS_LABEL ~ Categorical(0.3, 0.4, 0.3)
+    - A ~ Categorical(0.6, 0.4) if TRUE_CLASS_LABEL = class1, else Categorical(0.8, 0.2) if TRUE_CLASS_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_CLASS_LABEL = class3
+    - B ~ Categorical(0.5, 0.3, 0.2) if TRUE_CLASS_LABEL = class1, else Categorical(0.2, 0.5, 0.3) if TRUE_CLASS_LABEL = class2, else Categorical(0.3, 0.3, 0.4) if TRUE_CLASS_LABEL = class3
+    - C ~ Categorical(0.7, 0.3) if TRUE_CLASS_LABEL = class1, else Categorical(0.4, 0.6) if TRUE_CLASS_LABEL = class2, else Categorical(0.5, 0.5) if TRUE_CLASS_LABEL = class3
 
     Args:
         size (int): The sample size.
@@ -442,7 +442,7 @@ def generate_discrete_data_classification(size: int, seed: int = SEED) -> pd.Dat
     # DataFrame
     df = pd.DataFrame(
         {
-            TRUE_LABEL: pd.Series(class_values, dtype="category"),
+            TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
             "A": pd.Series(a_values, dtype="category"),
             "B": pd.Series(b_values, dtype="category"),
             "C": pd.Series(c_values, dtype="category"),
@@ -454,7 +454,7 @@ def generate_discrete_data_classification(size: int, seed: int = SEED) -> pd.Dat
 def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of normally distributed data with linear Gaussian relationships and a true label.
     The relationships are as follows:
-    - TRUE_LABEL ~ Categorical(0.3, 0.4, 0.3)
+    - TRUE_CLASS_LABEL ~ Categorical(0.3, 0.4, 0.3)
     - A ~ N(-4.2, 0.75)
     - B ~ N(0, 0.25) if class = class1, else N(1, 0.5) if class = class2, else N(2, 1) if class = class3
     - C ~ N(-2 + 2 * B, 1) if class = class1, else N(1 + 0.5 * B, 0.5) if class = class2, else N(3 + 3 * B, 0.25) if class = class3
@@ -508,7 +508,7 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
     # DataFrame
     df = pd.DataFrame(
         {
-            TRUE_LABEL: pd.Series(class_values, dtype="category"),
+            TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
             "A": a_values,
             "B": b_values,
             "C": c_values,
@@ -522,7 +522,7 @@ def generate_non_normal_data_classification(
 ) -> pd.DataFrame:
     """Generates a DataFrame of uniformly distributed data with non-linear relationships and a true label.
     The relationships are as follows:
-    - TRUE_LABEL ~ Categorical(0.3, 0.4, 0.3)
+    - TRUE_CLASS_LABEL ~ Categorical(0.3, 0.4, 0.3)
     - A ~ U(0, 10)
     - B ~ U(5, 15) if class = class1, else U(10, 20) if class = class2, else U(15, 25) if class = class3
     - C ~ sin(A) + cos(B) + U(-1, 1) if class = class1, else exp(A / 10) + log(B + 1) + U(-0.5, 0.5) if class = class2, else A * B + U(-2, 2) if class = class3
@@ -573,7 +573,7 @@ def generate_non_normal_data_classification(
     # DataFrame
     df = pd.DataFrame(
         {
-            TRUE_LABEL: pd.Series(class_values, dtype="category"),
+            TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
             "A": a_values,
             "B": b_values,
             "C": c_values,
