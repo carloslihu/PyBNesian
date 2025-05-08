@@ -116,9 +116,9 @@ def generate_discrete_data(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of discrete data with dependent variables.
     The relationships are as follows:
     - A ~ Categorical(0.75, 0.25)
-    - B ~ Categorical(0.33, 0.33, 0.34) if A = a1, else Categorical(0, 0.8, 0.2)
-    - C ~ Categorical(0.5, 0.5) if A = a1 and B = b1, else Categorical(0.75, 0.25) if A = a1 and B = b2, else Categorical(0.2, 0.8) if A = a1 and B = b3, else Categorical(1, 0) if A = a2 and B = b1, else Categorical(0, 1) if A = a2 and B = b2, else Categorical(0.01, 0.99) if A = a2 and B = b3
-    - D ~ Categorical(0.25, 0.25, 0.25, 0.25) if C = c1, else Categorical(0.7, 0, 0.15, 0.15) if C = c2
+    - B ~ Categorical(0.33, 0.33, 0.34) if A = A1, else Categorical(0, 0.8, 0.2)
+    - C ~ Categorical(0.5, 0.5) if A = A1 and B = B1, else Categorical(0.75, 0.25) if A = A1 and B = B2, else Categorical(0.2, 0.8) if A = A1 and B = B3, else Categorical(1, 0) if A = A2 and B = B1, else Categorical(0, 1) if A = A2 and B = B2, else Categorical(0.01, 0.99) if A = A2 and B = B3
+    - D ~ Categorical(0.25, 0.25, 0.25, 0.25) if C = C1, else Categorical(0.7, 0, 0.15, 0.15) if C = C2
 
     Args:
         size (int): The sample size.
@@ -136,60 +136,54 @@ def generate_discrete_data(size: int, seed: int = SEED) -> pd.DataFrame:
     d_dict = np.asarray(["D1", "D2", "D3", "D4"])
 
     a_values = a_dict[np.random.choice(a_dict.size, size, p=[0.75, 0.25])]
-    b_values = np.empty_like(a_values)
-    c_values = np.empty_like(a_values)
-    d_values = np.empty_like(a_values)
+    b_values = np.empty(size, dtype=object)
+    c_values = np.empty(size, dtype=object)
+    d_values = np.empty(size, dtype=object)
 
     # Indices
     a1_indices = a_values == "A1"
+    a2_indices = a_values == "A2"
 
-    a1b1_indices = np.logical_and(a_values == "A1", b_values == "B1")
-    a1b2_indices = np.logical_and(a_values == "A1", b_values == "B2")
-    a1b3_indices = np.logical_and(a_values == "A1", b_values == "B3")
-    a2b1_indices = np.logical_and(a_values == "A2", b_values == "B1")
-    a2b2_indices = np.logical_and(a_values == "A2", b_values == "B2")
-    a2b3_indices = np.logical_and(a_values == "A2", b_values == "B3")
-
-    c1_indices = c_values == "C1"
-    c2_indices = c_values == "C2"
-
-    # Sampling
+    # Sampling B
     b_values[a1_indices] = b_dict[
-        np.random.choice(b_dict.size, np.sum(a1_indices), p=[0.33, 0.33, 0.34])
+        np.random.choice(b_dict.size, a1_indices.sum(), p=[0.33, 0.33, 0.34])
     ]
-    b_values[~a1_indices] = b_dict[
-        np.random.choice(b_dict.size, np.sum(~a1_indices), p=[0, 0.8, 0.2])
-    ]
-
-    c_values[a1b1_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a1b1_indices), p=[0.5, 0.5])
-    ]
-    c_values[a1b2_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a1b2_indices), p=[0.75, 0.25])
-    ]
-    c_values[a1b3_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a1b3_indices), p=[0.2, 0.8])
-    ]
-    c_values[a2b1_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a2b1_indices), p=[1, 0])
-    ]
-    c_values[a2b2_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a2b2_indices), p=[0, 1])
-    ]
-    c_values[a2b3_indices] = c_dict[
-        np.random.choice(c_dict.size, np.sum(a2b3_indices), p=[0.01, 0.99])
+    b_values[a2_indices] = b_dict[
+        np.random.choice(b_dict.size, a2_indices.sum(), p=[0, 0.8, 0.2])
     ]
 
-    d_values[c1_indices] = d_dict[
-        np.random.choice(d_dict.size, np.sum(c1_indices), p=[0.25, 0.25, 0.25, 0.25])
-    ]
-    d_values[c2_indices] = d_dict[
-        np.random.choice(d_dict.size, np.sum(c2_indices), p=[0.7, 0, 0.15, 0.15])
-    ]
+    # Sampling C
+    for i in range(size):
+        if a_values[i] == "A1" and b_values[i] == "B1":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[0.5, 0.5])]
+        elif a_values[i] == "A1" and b_values[i] == "B2":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[0.75, 0.25])]
+        elif a_values[i] == "A1" and b_values[i] == "B3":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[0.2, 0.8])]
+        elif a_values[i] == "A2" and b_values[i] == "B1":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[1, 0])]
+        elif a_values[i] == "A2" and b_values[i] == "B2":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[0, 1])]
+        elif a_values[i] == "A2" and b_values[i] == "B3":
+            c_values[i] = c_dict[np.random.choice(c_dict.size, p=[0.01, 0.99])]
+
+    # Sampling D
+    for i in range(size):
+        if c_values[i] == "C1":
+            d_values[i] = d_dict[
+                np.random.choice(d_dict.size, p=[0.25, 0.25, 0.25, 0.25])
+            ]
+        elif c_values[i] == "C2":
+            d_values[i] = d_dict[np.random.choice(d_dict.size, p=[0.7, 0, 0.15, 0.15])]
 
     # DataFrame
     df = pd.DataFrame(
-        {"A": a_values, "B": b_values, "C": c_values, "D": d_values}, dtype="category"
+        {
+            "A": pd.Series(a_values, dtype="category"),
+            "B": pd.Series(b_values, dtype="category"),
+            "C": pd.Series(c_values, dtype="category"),
+            "D": pd.Series(d_values, dtype="category"),
+        }
     )
     return df
 
@@ -197,10 +191,10 @@ def generate_discrete_data(size: int, seed: int = SEED) -> pd.DataFrame:
 def generate_discrete_data_independent(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of discrete data with uniform distributions.
     The relationships are as follows:
-    - A ~ Categorical(a1, a2)
-    - B ~ Categorical(b1, b2, b3)
-    - C ~ Categorical(c1, c2)
-    - D ~ Categorical(d1, d2, d3, d4)
+    - A ~ Categorical(A1, A2)
+    - B ~ Categorical(B1, B2, B3)
+    - C ~ Categorical(C1, C2)
+    - D ~ Categorical(D1, D2, D3, D4)
 
     Args:
         size (int): The sample size.
@@ -234,9 +228,9 @@ def generate_hybrid_data(size: int, seed: int = SEED) -> pd.DataFrame:
     """Generates a DataFrame of hybrid data with discrete and continuous variables.
     The relationships are as follows:
     - A ~ Categorical(0.75, 0.25)
-    - B ~ Categorical(0.3, 0.4, 0.3) if A = a1, else Categorical(0.2, 0.5, 0.3)
+    - B ~ Categorical(0.3, 0.4, 0.3) if A = A1, else Categorical(0.2, 0.5, 0.3)
     - C ~ N(-4.2, 0.75)
-    - D ~ N(1, 0.75) if A = a1 and B = b1, else N(-2 + C, 2) if A = a1 and B = b2, else N(-1 + 3 * C, 0.25) if A = a1 and B = b3, else N(2, 1) if A = a2 and B = b1, else N(3.5 - 1.2 * C, 1) if A = a2 and B = b2, else N(4.8 - 2 * C, 1.5) if A = a2 and B = b3
+    - D ~ N(1, 0.75) if A = A1 and B = B1, else N(-2 + C, 2) if A = A1 and B = B2, else N(-1 + 3 * C, 0.25) if A = A1 and B = B3, else N(2, 1) if A = A2 and B = B1, else N(3.5 - 1.2 * C, 1) if A = A2 and B = B2, else N(4.8 - 2 * C, 1.5) if A = A2 and B = B3
 
     Args:
         size (int): The sample size.
@@ -456,8 +450,8 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
     The relationships are as follows:
     - TRUE_CLASS_LABEL ~ Categorical(0.3, 0.4, 0.3)
     - A ~ N(-4.2, 0.75)
-    - B ~ N(0, 0.25) if class = class1, else N(1, 0.5) if class = class2, else N(2, 1) if class = class3
-    - C ~ N(-2 + 2 * B, 1) if class = class1, else N(1 + 0.5 * B, 0.5) if class = class2, else N(3 + 3 * B, 0.25) if class = class3
+    - B ~ N(0, 0.25) if TRUE_CLASS_LABEL = class1, else N(1, 0.5) if TRUE_CLASS_LABEL = class2, else N(2, 1) if TRUE_CLASS_LABEL = class3
+    - C ~ N(-2 + 2 * B, 1) if TRUE_CLASS_LABEL = class1, else N(1 + 0.5 * B, 0.5) if TRUE_CLASS_LABEL = class2, else N(3 + 3 * B, 0.25) if TRUE_CLASS_LABEL = class3
         size (int): The sample
         seed (int, optional): The seed for random sampling. Defaults to 0.
 
@@ -524,8 +518,8 @@ def generate_non_normal_data_classification(
     The relationships are as follows:
     - TRUE_CLASS_LABEL ~ Categorical(0.3, 0.4, 0.3)
     - A ~ U(0, 10)
-    - B ~ U(5, 15) if class = class1, else U(10, 20) if class = class2, else U(15, 25) if class = class3
-    - C ~ sin(A) + cos(B) + U(-1, 1) if class = class1, else exp(A / 10) + log(B + 1) + U(-0.5, 0.5) if class = class2, else A * B + U(-2, 2) if class = class3
+    - B ~ U(5, 15) if TRUE_CLASS_LABEL = class1, else U(10, 20) if TRUE_CLASS_LABEL = class2, else U(15, 25) if TRUE_CLASS_LABEL = class3
+    - C ~ sin(A) + cos(B) + U(-1, 1) if TRUE_CLASS_LABEL = class1, else exp(A / 10) + log(B + 1) + U(-0.5, 0.5) if TRUE_CLASS_LABEL = class2, else A * B + U(-2, 2) if TRUE_CLASS_LABEL = class3
 
     Args:
         size (int): The sample size.
