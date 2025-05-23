@@ -18,7 +18,7 @@ authors = [
     { name = "Carlos Li Hu", email = "carloslihu96@gmail.com" },
 ]
 description = "PyBNesian is a Python package that implements Bayesian networks."
-version = "0.5.1"
+version = "0.5.2"
 readme = { file = "README.md", content-type = "text/markdown" }
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
