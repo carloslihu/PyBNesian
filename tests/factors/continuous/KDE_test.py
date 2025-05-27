@@ -10,7 +10,13 @@ df = generate_normal_data(SIZE, seed=0)
 df_float = df.astype("float32")
 
 
-def test_check_type():
+def test_check_type() -> None:
+    """
+    Tests that the KDE factor raises a ValueError when the data type of the test dataset
+    is different from the data type of the training dataset during log-likelihood and
+    smoothed log-likelihood computations.
+    """
+
     cpd = pbn.KDE(["A"])
     cpd.fit(df)
     with pytest.raises(ValueError) as ex:
@@ -30,12 +36,28 @@ def test_check_type():
 
 
 def test_kde_variables():
+    """
+    Tests the initialization of the KDE class with different sets of variables.
+    For each list of variable names, this test creates a KDE object and asserts
+    that the object's variables match the input list. This ensures that the KDE
+    class correctly stores and returns its variables upon initialization.
+    """
+
     for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         cpd = pbn.KDE(variables)
         assert cpd.variables() == variables
 
 
 def test_kde_bandwidth():
+    """
+    Tests the bandwidth selection and assignment functionality of the KDE class.
+    This test verifies:
+    - That the KDE bandwidth computed using the normal reference rule matches the output of scipy's gaussian_kde with a custom bandwidth method, for various variable sets and sample sizes.
+    - That the KDE bandwidth computed using Scott's rule matches the output of scipy's gaussian_kde default bandwidth, for various variable sets and sample sizes.
+    - That the bandwidth attribute of the KDE object can be manually set and correctly reflects the assigned value.
+    The test is performed for both integer and float dataframes.
+    """
+
     for variables in [["A"], ["B", "A"], ["C", "A", "B"], ["D", "A", "B", "C"]]:
         for instances in [50, 1000, 10000]:
             npdata = df.loc[:, variables].to_numpy()
@@ -81,6 +103,28 @@ def test_kde_bandwidth():
 
 
 class UnitaryBandwidth(pbn.BandwidthSelector):
+    """
+    A bandwidth selector that returns the identity matrix as the bandwidth.
+    This class is a subclass of `pbn.BandwidthSelector` and implements a simple bandwidth selection strategy
+    where the bandwidth matrix is always the identity matrix of size equal to the number of variables.
+    Methods
+    -------
+    __init__():
+        Initializes the UnitaryBandwidth selector.
+    bandwidth(df, variables):
+        Returns the identity matrix of shape (len(variables), len(variables)) as the bandwidth matrix.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The data frame containing the data (not used in this selector).
+    variables : list
+        The list of variables for which the bandwidth is to be computed.
+    Returns
+    -------
+    numpy.ndarray
+        An identity matrix of size equal to the number of variables.
+    """
+
     def __init__(self):
         pbn.BandwidthSelector.__init__(self)
 
@@ -89,6 +133,16 @@ class UnitaryBandwidth(pbn.BandwidthSelector):
 
 
 def test_kde_new_bandwidth():
+    """
+    Tests the behavior of the KDE class when using the UnitaryBandwidth bandwidth selector.
+    This test verifies that:
+    - When fitting a KDE with a single variable, the resulting bandwidth matrix is the 1x1 identity matrix.
+    - When fitting a KDE with four variables, the resulting bandwidth matrix is the 4x4 identity matrix.
+    - The behavior is consistent for both integer and float dataframes.
+    Assertions:
+        - The bandwidth matrix after fitting is as expected (identity matrix) for both data types and variable counts.
+    """
+
     kde = pbn.KDE(["A"], UnitaryBandwidth())
     kde.fit(df)
     assert kde.bandwidth == np.eye(1)
@@ -105,6 +159,14 @@ def test_kde_new_bandwidth():
 
 
 def test_kde_data_type():
+    """
+    Tests the `data_type` method of the KDE factor.
+    This test verifies that:
+    - Calling `data_type` before fitting the KDE raises a ValueError with the message "KDE factor not fitted".
+    - After fitting the KDE with a DataFrame `df`, the returned data type is `pa.float64()`.
+    - After fitting the KDE with a DataFrame `df_float`, the returned data type is `pa.float32()`.
+    """
+
     k = pbn.KDE(["A"])
 
     with pytest.raises(ValueError) as ex:
@@ -118,6 +180,19 @@ def test_kde_data_type():
 
 
 def test_kde_fit():
+    """
+    Tests the fitting process of the KDE (Kernel Density Estimation) class in the PyBNesian library.
+    This test verifies that:
+    - The KDE object is not fitted before calling `fit`.
+    - After fitting with a subset of the provided DataFrame, the KDE object is marked as fitted.
+    - The number of training instances and variables in the fitted KDE matches those of a reference `scipy.stats.gaussian_kde` object.
+    - The test is performed for different combinations of variables and different numbers of training instances, using both integer and float DataFrames.
+    Tested scenarios:
+    - Single and multiple variable KDEs.
+    - Different sample sizes (50, 150, 500).
+    - Both integer and float data types.
+    """
+
     def _test_kde_fit_iter(variables, _df, instances):
         cpd = pbn.KDE(variables)
         assert not cpd.fitted()
@@ -141,6 +216,16 @@ def test_kde_fit():
 
 
 def test_kde_fit_null():
+    """
+    Test the fitting of the KDE (Kernel Density Estimator) model when input data contains null (NaN) values.
+    This test verifies that:
+    - The KDE model is not fitted before calling `fit` and is fitted after.
+    - The model correctly ignores rows with null values during fitting.
+    - The number of training instances and variables in the fitted model matches those in a reference `scipy.stats.gaussian_kde` fitted on the same data with nulls removed.
+    - The computed bandwidth (covariance) of the KDE matches that of the reference implementation.
+    The test is performed for different combinations of variables and different numbers of training instances, using both integer and float dataframes with randomly inserted NaN values.
+    """
+
     def _test_kde_fit_null_iter(variables, _df, instances):
         cpd = pbn.KDE(variables)
         assert not cpd.fitted()
