@@ -37,9 +37,16 @@ Now, clone the repository, install its dependencies, and install the package.
 ```bash
 git clone https://github.com/carloslihu/PyBNesian.git
 cd PyBNesian
-pip install .
+pip install . --verbose
 ```
 
+If you want to pre-compile the C++ code, you can use the following command.
+This will create a wheel file in the `dist` folder, which can be used for installation
+or distribution.
+```bash
+pip wheel . -w dist --verbose
+pip install dist/pybnesian*.whl
+```
 ### Installing directly from PyPi
 Before installing PyBNesian, ensure that all the dependencies are already installed in your Python environment.
 
