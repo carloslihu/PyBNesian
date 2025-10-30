@@ -15,7 +15,8 @@ namespace vptree {
 template <typename ArrowType>
 std::vector<size_t> hash_columns(
     const std::vector<std::shared_ptr<typename arrow::TypeTraits<ArrowType>::ArrayType>>& data,
-    std::vector<std::string> column_names);
+    std::vector<std::string> column_names,
+    bool discrete_data);
 
 template <typename ArrowType>
 class HybridChebyshevDistance {
@@ -30,9 +31,9 @@ public:
         m_operations_coords.reserve(m_data.size());
         for (size_t i = 0; i < m_data.size(); ++i) {
             if (is_discrete_column[i]) {
-                // For discrete columns, Hamming distance
+                // For discrete columns, Hamming {0,inf} distance
                 m_operations_coords.push_back([this, i](size_t p1_index, size_t p2_index) -> CType {
-                    return (m_data[i]->Value(p1_index) != m_data[i]->Value(p2_index));
+                    return (m_data[i]->Value(p1_index) != m_data[i]->Value(p2_index)) ? std::numeric_limits<CType>::infinity() : 0.0;
                 });
             } else {
                 // For continuous columns, Manhattan distance
