@@ -1,8 +1,10 @@
 #include <learning/independences/hybrid/mixed_knncmi.hpp>
 #include <factors/discrete/discrete_indices.hpp>
 #include <kdtree/kdtree.hpp>
+#include <util/math_constants.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 #include <boost/math/distributions/gamma.hpp>
+#include <boost/math/distributions/normal.hpp>
 
 using Array_ptr = std::shared_ptr<arrow::Array>;
 using vptree::hash_columns;
@@ -121,10 +123,11 @@ double mi_general(VPTree& ztree,
 
     VectorXd eps(n_rows);
     VectorXi k_hat(n_rows);
+
     for (auto i = 0; i < n_rows; ++i) {
         eps(i) = knn_results[i].first(k);
         k_hat(i) = knn_results[i].second.size();
-        if (k == 1 && eps(i) == 1.0) {
+        if (k == 1 && eps(i) == std::numeric_limits<double>::infinity()) {
             k_hat(i) = 1;
             eps(i) = 0.0;
         }
@@ -136,6 +139,7 @@ double mi_general(VPTree& ztree,
     double res = 0;
     auto exclude_self = [](int value) { return (value > 1) ? (value - 1) : value; };
 
+#pragma omp parallel for reduction(+ : res)
     for (int i = 0; i < n_rows; ++i) {
         res += boost::math::digamma(exclude_self(k_hat(i))) + boost::math::digamma(exclude_self(n_z(i))) -
                boost::math::digamma(exclude_self(n_xz(i))) - boost::math::digamma(exclude_self(n_yz(i)));
@@ -160,10 +164,11 @@ double mi_pair(VPTree& ytree,
 
     VectorXd eps(n_rows);
     VectorXi k_hat(n_rows);
+
     for (auto i = 0; i < n_rows; ++i) {
         eps(i) = knn_results[i].first[k];
         k_hat(i) = knn_results[i].second.size();
-        if (k == 1 && eps(i) == 1.0) {
+        if (k == 1 && eps(i) == std::numeric_limits<double>::infinity()) {
             k_hat(i) = 1;
             eps(i) = 0.0;
         }
@@ -183,6 +188,7 @@ double mi_pair(VPTree& ytree,
     double res = 0;
     auto exclude_self = [](int value) { return (value > 1) ? (value - 1) : value; };
 
+#pragma omp parallel for reduction(+ : res)
     for (int i = 0; i < n_rows; ++i) {
         // Z is treated as a constant column, thus n_z = n_rows - 1
         res += boost::math::digamma(exclude_self(k_hat(i))) + boost::math::digamma(n_rows - 1) -
@@ -220,7 +226,7 @@ int MixedKMutualInformation::find_minimum_shuffled_cluster_size(const DataFrame&
     switch (m_datatype->id()) {
         case Type::FLOAT: {
             auto data = shuffled_df.downcast_vector<arrow::FloatType>(discrete_vars);
-            auto hashed_cols = hash_columns<arrow::FloatType>(data, discrete_vars);
+            auto hashed_cols = hash_columns<arrow::FloatType>(data, discrete_vars, true);
             for (long unsigned int i = 0; i < hashed_cols.size(); ++i) {
                 joint_counts[hashed_cols[i]]++;
             }
@@ -228,7 +234,7 @@ int MixedKMutualInformation::find_minimum_shuffled_cluster_size(const DataFrame&
         }
         default: {
             auto data = shuffled_df.downcast_vector<arrow::DoubleType>(discrete_vars);
-            auto hashed_cols = hash_columns<arrow::DoubleType>(data, discrete_vars);
+            auto hashed_cols = hash_columns<arrow::DoubleType>(data, discrete_vars, true);
             for (long unsigned int i = 0; i < hashed_cols.size(); ++i) {
                 joint_counts[hashed_cols[i]]++;
             }
@@ -372,47 +378,78 @@ double compute_variance(const std::vector<double>& data, double mean) {
     return variance / data.size();
 }
 
+double compute_skewness(const std::vector<double>& data, double mean, double variance) {
+    double skewness = 0.0;
+
+    for (double x : data) {
+        skewness += std::pow(x - mean, 3);
+    }
+
+    return (skewness / data.size()) / std::pow(variance, 1.5);
+}
 double compute_pvalue(double original_mi, std::vector<double>& permutation_stats, bool gamma_approx) {
     double min_value = *std::min_element(permutation_stats.begin(), permutation_stats.end());
     double max_value = *std::max_element(permutation_stats.begin(), permutation_stats.end());
 
     if (original_mi > max_value) {
-        return 0.0;
+        return 1.0 / static_cast<double>((permutation_stats.size() + 1));
     } else if (original_mi <= min_value) {
         return 1.0;
     }
 
     if (gamma_approx) {
-        // small positive value to ensure positivity
-        double epsilon = std::numeric_limits<double>::epsilon();
-        std::vector<double> shifted_data;
-        // shift statistics to the positive interval
-        for (long unsigned int i = 0; i < permutation_stats.size(); ++i) {
-            permutation_stats[i] = permutation_stats[i] - min_value + epsilon;
-        }
+        // include unpermuted statistic for conservative p-value estimation
+        permutation_stats.push_back(original_mi);
 
         double mean = compute_mean(permutation_stats);
         double variance = compute_variance(permutation_stats, mean);
+        double skewness = compute_skewness(permutation_stats, mean, variance);
 
-        double shape, scale;
-        shape = (mean * mean) / variance;
-        scale = variance / mean;
+        // standardise to mu=0 std=1 to fit a Pearson type III PDF (Minas & Montana, 2014)
+        for (long unsigned int i = 0; i < permutation_stats.size(); ++i) {
+            permutation_stats[i] = (permutation_stats[i] - mean) / std::sqrt(variance);
+        }
 
-        // fit gamma using method of moments
-        boost::math::gamma_distribution<> gamma_dist(shape, scale);
+        auto z_value = permutation_stats.back();
+        permutation_stats.pop_back();
 
-        // use the fitted gamma distribution to compute the p-value
-        return 1 - boost::math::cdf(gamma_dist, original_mi - min_value + epsilon);
+        if (skewness == 0.0) {
+            // Standard normal distribution
+            boost::math::normal_distribution<> standard_normal(0.0, 1.0);
+            return boost::math::cdf(boost::math::complement(standard_normal, z_value));
+        }
+        double k, theta, c;
+        k = 4 / std::pow(skewness, 2);  // shape
+        theta = skewness / 2.0;         // scale
+        c = -2.0 / skewness;            // location shift
+
+        auto x_value = (z_value - c) / theta;
+
+        // fit gamma using method of moments to compute the p-value
+
+        if (skewness > 0) {
+            if (x_value >= util::machine_tol) { // practically 0, but avoids convergence timeouts
+                return boost::math::gamma_q<>(k, x_value);  // upper tail
+            }
+
+            return 1.0;  // outside gamma support
+        }
+
+        else if (x_value >= util::machine_tol) {
+            return boost::math::gamma_p<>(k, x_value);  // lower tail
+        }
+
+        return 1.0 / static_cast<double>((permutation_stats.size() + 1));  // outside gamma support
     }
 
-    // crude p-value computation
-    int count_greater = 0;
+    // crude Monte Carlo p-value computation
+    int count_greater = 1;
 
     for (long unsigned int i = 0; i < permutation_stats.size(); ++i) {
         if (permutation_stats[i] >= original_mi) ++count_greater;
     }
 
-    return static_cast<double>(count_greater) / permutation_stats.size();
+    return static_cast<double>(count_greater) / static_cast<double>((permutation_stats.size() + 1));
 }
 
 double MixedKMutualInformation::pvalue(const std::string& x, const std::string& y) const {
@@ -607,7 +644,7 @@ double MixedKMutualInformation::shuffled_pvalue(double original_mi,
             for (int i = 0; i < m_samples; ++i) {
                 std::shuffle(order.begin(), order.end(), rng);
                 shuffle_dataframe(original_x, shuffled_x, order, used, neighbors, rng);
-                // we compute the adaptive k only if X is discrete
+                // we recompute the adaptive k only if X is discrete
                 if (is_discrete_column[0] && m_adaptive_k) {
                     auto min_cluster_size = find_minimum_shuffled_cluster_size(shuffled_df, discrete_vars);
                     k = std::min(k, min_cluster_size - 1);
@@ -630,7 +667,7 @@ double MixedKMutualInformation::shuffled_pvalue(double original_mi,
             for (int i = 0; i < m_samples; ++i) {
                 std::shuffle(order.begin(), order.end(), rng);
                 shuffle_dataframe(original_x, shuffled_x, order, used, neighbors, rng);
-                // we compute the adaptive k only if X is discrete
+                // we recompute the adaptive k only if X is discrete
                 if (is_discrete_column[0] && m_adaptive_k) {
                     auto min_cluster_size = find_minimum_shuffled_cluster_size(shuffled_df, discrete_vars);
                     k = std::min(k, min_cluster_size - 1);
