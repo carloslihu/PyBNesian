@@ -1,4 +1,4 @@
-![build](https://img.shields.io/github/actions/workflow/status/davenza/pybnesian/release.yml)
+![build](https://img.shields.io/github/actions/workflow/status/carloslihu/pybnesian/release.yml)
 [![Documentation Status](https://readthedocs.org/projects/pybnesian/badge/?version=latest)](https://pybnesian.readthedocs.io/en/latest/?badge=latest)
 ![PyPI](https://img.shields.io/pypi/v/pybnesian?color=blue)
 
@@ -304,9 +304,9 @@ Building
 Clone the repository:
 
 ```
-git clone https://github.com/davenza/PyBNesian.git
+git clone https://github.com/carloslihu/PyBNesian.git
 cd PyBNesian
-git checkout v0.5.1 # You can checkout a specific version if you want
+git checkout feature/diagonal-bandwidth # Optional: checkout branch with diagonal bandwidth KDE
 pip install .
 ```
 
