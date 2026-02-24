@@ -291,7 +291,6 @@ Clone the repository:
 ```
 git clone https://github.com/carloslihu/PyBNesian.git
 cd PyBNesian
-git checkout feature/diagonal-bandwidth # Optional: checkout branch with diagonal bandwidth KDE
 pip install .
 ```
 

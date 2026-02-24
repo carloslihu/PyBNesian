@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+- Updated KDE bandwidth calculation to use diagonal covariance matrix instead of full covariance matrix. This change allows for more efficient bandwidth estimation and can improve the performance of KDE in high-dimensional spaces.
+- Added mixed_knncmi estimator for mutual information estimation with mixed data. This estimator uses a k-nearest neighbors approach for continuous data and a frequency-based approach for discrete data.
+- Improved the documentation for installation and usage of the package, including more detailed instructions and troubleshooting tips.
+
+
 ## v0.5.2
 
 - Python code is now formatted with `black` and `isort`, and has been refactored according to `PEP 8` style guides.
