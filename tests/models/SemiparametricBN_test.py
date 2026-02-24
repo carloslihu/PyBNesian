@@ -1,4 +1,5 @@
 import numpy as np
+import pyarrow as pa
 import pybnesian as pbn
 import pytest
 from helpers.data import DATA_SIZE, generate_normal_data
@@ -269,3 +270,17 @@ def test_logl():
     assert np.all(np.isclose(ll, sum_ll))
     assert np.isclose(sll, ll.sum())
     assert sll == sum_sll
+
+
+def test_sample_float32_lg_ckde_regression():
+    train_df = generate_normal_data(5000).loc[:, ["A", "B"]].astype("float32")
+
+    spbn = pbn.SemiparametricBN(["A", "B"], [("A", "B")], [("B", pbn.CKDEType())])
+    spbn.fit(train_df)
+
+    sample = spbn.sample(200, seed=0, ordered=True)
+
+    assert sample.schema.names == ["A", "B"]
+    assert sample.num_rows == 200
+    assert sample.column(0).type == pa.float32()
+    assert sample.column(1).type == pa.float32()
