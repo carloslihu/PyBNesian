@@ -7,12 +7,17 @@ further discussions related to the installation procedure.
 
 ### Contents
 
-1. [Ubuntu and Linux sub-systems](#ubuntu-and-linux-sub-systems)
-2. [Windows](#windows)
-3. [Installation issues](#installation-issues)
+- [Installing PyBNesian](#installing-pybnesian)
+    - [Contents](#contents)
+  - [Ubuntu and Linux sub-systems](#ubuntu-and-linux-sub-systems)
+    - [Requirements](#requirements)
+    - [Installing directly from PyPi](#installing-directly-from-pypi)
+    - [Installing from source](#installing-from-source)
+  - [Windows](#windows)
+  - [Installation issues](#installation-issues)
 
 ## Ubuntu and Linux sub-systems
-
+### Requirements
 PyBNesian uses C++ and OpenCL in the backend to speed up certain computations.
 Thus, some software is required to ensure everything works.
 Note that, although setting up a Conda environment is usually recommended, it is not mandatory.
@@ -20,24 +25,50 @@ The following commands ensure that the C++ and OpenCL requirements are satisfied
 
 ```bash
 sudo apt update
-sudo apt install cmake
-sudo apt install g++
-sudo apt install opencl-headers
-sudo apt install ocl-icd-opencl-dev
+sudo apt install -y --no-install-recommends \
+    bison \
+    build-essential \
+    cmake \
+    curl \
+    flex \
+    g++ \
+    git \
+    ninja-build \
+    ocl-icd-opencl-dev \
+    opencl-headers \
+    pkg-config \
+    python3 \
+    python3-dev \
+    python3-pip \
+    tar \
+    unzip \
+    zip
 ```
 
 After the previous steps you should be able to install PyBNesian and its dependencies.
 
-### Installing from source
-
-To install from source, we will download git to be able to download the
-repository from GitHub.
+### Installing directly from PyPi
+The easiest way to install PyBNesian is using pip. This will install the latest version of the software from PyPi, which is the recommended way to get started.
 
 ```bash
-sudo apt install git
+pip install PyBNesian
 ```
 
-Now, clone the repository, install its dependencies, and install the package.
+### Installing from source
+You can also install PyBNesian from source. 
+This is recommended if you want to contribute to the development of the software, or if you want to use the latest version of the code.
+
+If you want to pre-compile the C++ code, you can use the following command.
+This will create a wheel file in the `dist` folder, which can be used for installation or distribution.
+
+```bash
+git clone https://github.com/carloslihu/PyBNesian.git
+cd PyBNesian
+pip wheel . -w dist --verbose
+pip install dist/pybnesian*.whl
+```
+
+Alternatively, you can install PyBNesian directly from the source code using the following command.
 
 ```bash
 git clone https://github.com/carloslihu/PyBNesian.git
@@ -45,25 +76,7 @@ cd PyBNesian
 pip install . --verbose
 ```
 
-If you want to pre-compile the C++ code, you can use the following command.
-This will create a wheel file in the `dist` folder, which can be used for installation
-or distribution.
-
-```bash
-pip wheel . -w dist --verbose
-pip install dist/pybnesian*.whl
-```
-
-### Installing directly from PyPi
-
-Before installing PyBNesian, ensure that all the dependencies are already installed in your Python environment.
-
-```bash
-pip install PyBNesian
-```
-
-If no errors were raised, then the software is ready to be used. Otherwise, please
-restart the process or raise an issue in the repository.
+If no errors were raised, then the software is ready to be used. Otherwise, please restart the process or raise an issue in the repository.
 
 ## Windows
 
@@ -92,33 +105,6 @@ winget install "Visual Studio Build Tools 2022"
 
 5. Install PyBNesian
 
-### Installing from source
-
-To install from source, we will download git to be able to download the
-repository from GitHub.
-
-```bash
-sudo apt install git
-```
-
-Now, clone the repository, install its dependencies, and install the package.
-
-```bash
-git clone https://github.com/carloslihu/PyBNesian.git
-cd PyBNesian
-pip install .
-```
-
-### Installing directly from PyPi
-
-Before installing PyBNesian, ensure that all the dependencies are already installed in your Python environment.
-
-```bash
-pip install PyBNesian
-```
-
-If no errors were raised, then the software is ready to be used.
-Otherwise, please restart the process or raise an issue in the repository.
 
 ## Installation issues
 
