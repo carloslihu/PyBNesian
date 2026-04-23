@@ -64,16 +64,9 @@ This will create a wheel file in the `dist` folder, which can be used for instal
 ```bash
 git clone https://github.com/carloslihu/PyBNesian.git
 cd PyBNesian
+# pip install . --verbose
 pip wheel . -w dist --verbose
 pip install dist/pybnesian*.whl
-```
-
-Alternatively, you can install PyBNesian directly from the source code using the following command.
-
-```bash
-git clone https://github.com/carloslihu/PyBNesian.git
-cd PyBNesian
-pip install . --verbose
 ```
 
 If no errors were raised, then the software is ready to be used. Otherwise, please restart the process or raise an issue in the repository.

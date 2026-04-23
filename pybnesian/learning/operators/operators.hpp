@@ -1,6 +1,7 @@
 #ifndef PYBNESIAN_LEARNING_OPERATORS_OPERATORS_HPP
 #define PYBNESIAN_LEARNING_OPERATORS_OPERATORS_HPP
 
+#include <cmath>
 #include <Eigen/Dense>
 #include <models/BayesianNetwork.hpp>
 #include <learning/scores/scores.hpp>
@@ -17,6 +18,29 @@ using models::ConditionalBayesianNetworkBase;
 using util::ArcStringVector, util::FactorTypeVector;
 
 namespace learning::operators {
+
+/**
+ * @brief Comparator for operator delta indices with deterministic tie-breaking.
+ *
+ * Sorts by descending delta score, places NaN values after finite values,
+ * and uses the index as a stable tie-breaker when deltas are equal.
+ */
+inline bool delta_index_greater(const double* delta_ptr, int i1, int i2) {
+    const auto d1 = delta_ptr[i1];
+    const auto d2 = delta_ptr[i2];
+
+    const bool nan1 = std::isnan(d1);
+    const bool nan2 = std::isnan(d2);
+    if (nan1 != nan2) {
+        return !nan1;
+    }
+
+    if (d1 == d2) {
+        return i1 < i2;
+    }
+
+    return d1 > d2;
+}
 
 class Operator {
 public:
@@ -507,9 +531,9 @@ template <bool limited_indegree>
 std::shared_ptr<Operator> ArcOperatorSet::find_max_indegree(const BayesianNetworkBase& model) const {
     auto delta_ptr = delta.data();
 
-    // TODO: Not checking sorted_idx empty
-    std::sort(
-        sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) { return delta_ptr[i1] > delta_ptr[i2]; });
+    std::sort(sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) {
+        return delta_index_greater(delta_ptr, i1, i2);
+    });
 
     for (auto it = sorted_idx.begin(), end = sorted_idx.end(); it != end; ++it) {
         auto idx = *it;
@@ -545,9 +569,9 @@ template <bool limited_indegree>
 std::shared_ptr<Operator> ArcOperatorSet::find_max_indegree(const ConditionalBayesianNetworkBase& model) const {
     auto delta_ptr = delta.data();
 
-    // TODO: Not checking sorted_idx empty
-    std::sort(
-        sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) { return delta_ptr[i1] > delta_ptr[i2]; });
+    std::sort(sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) {
+        return delta_index_greater(delta_ptr, i1, i2);
+    });
 
     for (auto it = sorted_idx.begin(), end = sorted_idx.end(); it != end; ++it) {
         auto idx = *it;
@@ -599,9 +623,9 @@ std::shared_ptr<Operator> ArcOperatorSet::find_max_indegree(const BayesianNetwor
                                                             const OperatorTabuSet& tabu_set) const {
     auto delta_ptr = delta.data();
 
-    // TODO: Not checking sorted_idx empty
-    std::sort(
-        sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) { return delta_ptr[i1] > delta_ptr[i2]; });
+    std::sort(sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) {
+        return delta_index_greater(delta_ptr, i1, i2);
+    });
 
     for (auto it = sorted_idx.begin(), end = sorted_idx.end(); it != end; ++it) {
         auto idx = *it;
@@ -644,9 +668,9 @@ std::shared_ptr<Operator> ArcOperatorSet::find_max_indegree(const ConditionalBay
                                                             const OperatorTabuSet& tabu_set) const {
     auto delta_ptr = delta.data();
 
-    // TODO: Not checking sorted_idx empty
-    std::sort(
-        sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) { return delta_ptr[i1] > delta_ptr[i2]; });
+    std::sort(sorted_idx.begin(), sorted_idx.end(), [&delta_ptr](auto i1, auto i2) {
+        return delta_index_greater(delta_ptr, i1, i2);
+    });
 
     for (auto it = sorted_idx.begin(), end = sorted_idx.end(); it != end; ++it) {
         auto idx = *it;
