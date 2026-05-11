@@ -4,8 +4,12 @@ import pyarrow as pa
 import pybnesian as pbn
 import pytest
 from helpers.data import DATA_SIZE, generate_normal_data
-from scipy.stats import gaussian_kde
-from scipy.stats import multivariate_normal as mvn
+from helpers.kde import (
+    diagonal_kde_logpdf,
+    diagonal_kernel_logpdf_matrix,
+    normal_reference_bandwidth,
+)
+from scipy.special import logsumexp
 from scipy.stats import norm
 
 SMALL_SIZE = 10
@@ -56,9 +60,12 @@ def test_ckde_kde_joint():
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
         kde_joint = cpd.kde_joint
-        kde_joint().bandwidth = np.eye(len(evidence) + 1)
+        bandwidth = normal_reference_bandwidth(
+            _df.loc[:, [variable] + evidence].dropna(), [variable] + evidence
+        )
+        kde_joint().bandwidth = np.diag(bandwidth)
         assert np.all(
-            cpd.kde_joint().bandwidth == np.eye(len(evidence) + 1)
+            cpd.kde_joint().bandwidth == np.diag(bandwidth)
         ), "kde_joint do not return a reference to the KDE joint, but a copy."
 
     for variable, evidence in [
@@ -79,9 +86,12 @@ def test_ckde_kde_marg():
 
         if evidence:
             assert kde_marg().fitted()
-            kde_marg().bandwidth = np.eye(len(evidence))
+            joint_bandwidth = normal_reference_bandwidth(
+                _df.loc[:, [variable] + evidence].dropna(), [variable] + evidence
+            )
+            kde_marg().bandwidth = np.diag(joint_bandwidth[1:])
             assert np.all(
-                cpd.kde_marg().bandwidth == np.eye(len(evidence))
+                cpd.kde_marg().bandwidth == np.diag(joint_bandwidth[1:])
             ), "kde_marg do not return a reference to the KDE joint, but a copy."
         else:
             # kde_marg contains garbage if there is no evidence
@@ -99,12 +109,7 @@ def test_ckde_kde_marg():
 
 def test_ckde_fit():
     def _test_ckde_fit(variables, _df, instances):
-        npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
-            npdata[:instances, :].T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        joint_bandwidth = normal_reference_bandwidth(_df.iloc[:instances], variables)
 
         cpd = pbn.CKDE(variable, evidence)
         assert not cpd.fitted()
@@ -112,12 +117,12 @@ def test_ckde_fit():
         assert cpd.fitted()
 
         kde_joint = cpd.kde_joint
-        assert np.all(np.isclose(kde_joint().bandwidth, scipy_kde.covariance))
+        assert np.all(np.isclose(kde_joint().bandwidth, np.diag(joint_bandwidth)))
 
         if evidence:
             kde_marg = cpd.kde_marg
             assert np.all(
-                np.isclose(kde_marg().bandwidth, scipy_kde.covariance[1:, 1:])
+                np.isclose(kde_marg().bandwidth, np.diag(joint_bandwidth[1:]))
             )
 
         assert cpd.num_instances() == instances
@@ -141,26 +146,19 @@ def test_ckde_fit_null():
         cpd.fit(_df.iloc[:instances])
         assert cpd.fitted()
 
-        npdata = _df.loc[:, variables].to_numpy()
-        npdata_instances = npdata[:instances, :]
-        nan_rows = np.any(np.isnan(npdata_instances), axis=1)
-        npdata_no_null = npdata_instances[~nan_rows, :]
-        scipy_kde = gaussian_kde(
-            npdata_no_null.T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        joint_data = _df.iloc[:instances].loc[:, variables].dropna()
+        joint_bandwidth = normal_reference_bandwidth(joint_data, variables)
 
         kde_joint = cpd.kde_joint
-        assert np.all(np.isclose(kde_joint().bandwidth, scipy_kde.covariance))
+        assert np.all(np.isclose(kde_joint().bandwidth, np.diag(joint_bandwidth)))
 
         if evidence:
             kde_marg = cpd.kde_marg
             assert np.all(
-                np.isclose(kde_marg().bandwidth, scipy_kde.covariance[1:, 1:])
+                np.isclose(kde_marg().bandwidth, np.diag(joint_bandwidth[1:]))
             )
 
-        assert cpd.num_instances() == scipy_kde.n
+        assert cpd.num_instances() == joint_data.shape[0]
 
     np.random.seed(0)
     a_null = np.random.randint(0, DATA_SIZE, size=100)
@@ -194,29 +192,14 @@ def test_ckde_fit_null():
 
 def train_scipy_ckde(data, variable, evidence):
     variables = [variable] + evidence
-    npdata_joint = data.loc[:, variables].to_numpy()
-    npdata_marg = data.loc[:, evidence].to_numpy()
-
-    nan_rows = np.any(np.isnan(npdata_joint), axis=1)
-
-    scipy_kde_joint = gaussian_kde(
-        npdata_joint[~nan_rows, :].T,
-        bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4)) * s.scotts_factor(),
-    )
-    if evidence:
-        scipy_kde_marg = gaussian_kde(
-            npdata_marg[~nan_rows, :].T, bw_method=scipy_kde_joint.factor
-        )
-    else:
-        scipy_kde_marg = None
-
-    return scipy_kde_joint, scipy_kde_marg
+    joint_data = data.loc[:, variables].dropna()
+    joint_bandwidth = normal_reference_bandwidth(joint_data, variables)
+    return joint_data, joint_bandwidth
 
 
-def scipy_ckde_logpdf(test_data, joint_kde, marg_kde, variable, evidence):
+def scipy_ckde_logpdf(test_data, joint_data, joint_bandwidth, variable, evidence):
     variables = [variable] + evidence
     test_data_joint = test_data.loc[:, variables].to_numpy()
-    test_data_marg = test_data.loc[:, evidence].to_numpy()
 
     nan_rows = np.any(np.isnan(test_data_joint), axis=1)
 
@@ -226,19 +209,25 @@ def scipy_ckde_logpdf(test_data, joint_kde, marg_kde, variable, evidence):
         result = np.full(test_data.shape[0], np.nan, dtype=np.float64)
 
     if evidence:
-        result[~nan_rows] = joint_kde.logpdf(
-            test_data_joint[~nan_rows, :].T
-        ) - marg_kde.logpdf(test_data_marg[~nan_rows, :].T)
+        result[~nan_rows] = diagonal_kde_logpdf(
+            test_data.loc[~nan_rows, variables], joint_data, variables, joint_bandwidth
+        ) - diagonal_kde_logpdf(
+            test_data.loc[~nan_rows, evidence],
+            joint_data.loc[:, evidence],
+            evidence,
+            joint_bandwidth[1:],
+        )
     else:
-        result[~nan_rows] = joint_kde.logpdf(test_data_joint[~nan_rows, :].T)
+        result[~nan_rows] = diagonal_kde_logpdf(
+            test_data.loc[~nan_rows, variables], joint_data, variables, joint_bandwidth
+        )
 
     return result
 
 
-def scipy_ckde_cdf(test_data, joint_kde, marg_kde, variable, evidence):
+def scipy_ckde_cdf(test_data, joint_data, joint_bandwidth, variable, evidence):
     variables = [variable] + evidence
     test_data_joint = test_data.loc[:, variables].to_numpy()
-    test_data_marg = test_data.loc[:, evidence].to_numpy()
 
     nan_rows = np.any(np.isnan(test_data_joint), axis=1)
 
@@ -247,48 +236,28 @@ def scipy_ckde_cdf(test_data, joint_kde, marg_kde, variable, evidence):
     else:
         result = np.full(test_data.shape[0], np.nan, dtype=np.float64)
 
-    total_w = np.empty((joint_kde.n, test_data_joint.shape[0]))
-    conditional_mean = np.empty((joint_kde.n, test_data_joint.shape[0]))
-    total_cdf = np.empty((joint_kde.n, test_data_joint.shape[0]))
+    valid_rows = np.where(~nan_rows)[0]
 
     if evidence:
-        bandwidth = joint_kde.covariance
-        cond_var = bandwidth[0, 0] - bandwidth[0, 1:].dot(
-            np.linalg.inv(bandwidth[1:, 1:])
-        ).dot(bandwidth[1:, 0])
-        for test_index in np.where(~np.any(np.isnan(test_data_joint), axis=1))[0]:
-            w = mvn.logpdf(
-                marg_kde.dataset.T,
-                mean=test_data_marg[test_index, :],
-                cov=marg_kde.covariance,
-            )
-            w = np.exp(w)
-            total_w[:, test_index] = w
-
-            evidence_diff = test_data_marg[test_index, :] - joint_kde.dataset[1:, :].T
-            cond_mean = joint_kde.dataset[0, :] + bandwidth[0, 1:].dot(
-                np.linalg.inv(bandwidth[1:, 1:])
-            ).dot(evidence_diff.T)
-
-            conditional_mean[:, test_index] = cond_mean
-            total_cdf[:, test_index] = norm.cdf(
-                test_data_joint[test_index, 0], cond_mean, np.sqrt(cond_var)
-            )
-
-            result[test_index] = np.dot(
-                w,
-                norm.cdf(test_data_joint[test_index, 0], cond_mean, np.sqrt(cond_var)),
-            )
-
-        result /= np.sum(total_w, axis=0)
-
+        log_weights = diagonal_kernel_logpdf_matrix(
+            test_data.loc[valid_rows, evidence].to_numpy(),
+            joint_data.loc[:, evidence].to_numpy(),
+            joint_bandwidth[1:],
+        )
+        weights = np.exp(log_weights - logsumexp(log_weights, axis=1, keepdims=True))
+        cdf = norm.cdf(
+            test_data_joint[valid_rows, 0][:, None],
+            joint_data.loc[:, variable].to_numpy()[None, :],
+            np.sqrt(joint_bandwidth[0]),
+        )
+        result[valid_rows] = np.sum(weights * cdf, axis=1)
     else:
         cdf = norm.cdf(
-            test_data_joint[~nan_rows],
-            joint_kde.dataset,
-            np.sqrt(joint_kde.covariance[0, 0]),
+            test_data_joint[valid_rows, 0][:, None],
+            joint_data.loc[:, variable].to_numpy()[None, :],
+            np.sqrt(joint_bandwidth[0]),
         )
-        result[~nan_rows] = np.sum((1 / joint_kde.n) * cdf, axis=1)
+        result[valid_rows] = np.mean(cdf, axis=1)
 
     return result
 
@@ -297,11 +266,11 @@ def test_ckde_logl():
     def _test_ckde_logl(variable, evidence, _df, _test_df):
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
-        scipy_kde_joint, scipy_kde_marg = train_scipy_ckde(_df, variable, evidence)
+        scipy_kde_joint, scipy_kde_bandwidth = train_scipy_ckde(_df, variable, evidence)
 
         logl = cpd.logl(_test_df)
         scipy = scipy_ckde_logpdf(
-            _test_df, scipy_kde_joint, scipy_kde_marg, variable, evidence
+            _test_df, scipy_kde_joint, scipy_kde_bandwidth, variable, evidence
         )
 
         if np.all(_df.dtypes == "float32"):
@@ -345,11 +314,11 @@ def test_ckde_logl_null():
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
 
-        scipy_kde_joint, scipy_kde_marg = train_scipy_ckde(_df, variable, evidence)
+        scipy_kde_joint, scipy_kde_bandwidth = train_scipy_ckde(_df, variable, evidence)
 
         logl = cpd.logl(_test_df)
         scipy = scipy_ckde_logpdf(
-            _test_df, scipy_kde_joint, scipy_kde_marg, variable, evidence
+            _test_df, scipy_kde_joint, scipy_kde_bandwidth, variable, evidence
         )
 
         if np.all(_test_df.dtypes == "float32"):
@@ -417,9 +386,9 @@ def test_ckde_slogl():
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
 
-        scipy_kde_joint, scipy_kde_marg = train_scipy_ckde(_df, variable, evidence)
+        scipy_kde_joint, scipy_kde_bandwidth = train_scipy_ckde(_df, variable, evidence)
         scipy_logl = scipy_ckde_logpdf(
-            _test_df, scipy_kde_joint, scipy_kde_marg, variable, evidence
+            _test_df, scipy_kde_joint, scipy_kde_bandwidth, variable, evidence
         )
 
         if np.all(_test_df.dtypes == "float32"):
@@ -466,9 +435,9 @@ def test_ckde_slogl_null():
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
 
-        scipy_kde_joint, scipy_kde_marg = train_scipy_ckde(_df, variable, evidence)
+        scipy_kde_joint, scipy_kde_bandwidth = train_scipy_ckde(_df, variable, evidence)
         scipy_logl = scipy_ckde_logpdf(
-            _test_df, scipy_kde_joint, scipy_kde_marg, variable, evidence
+            _test_df, scipy_kde_joint, scipy_kde_bandwidth, variable, evidence
         )
 
         if np.all(_test_df.dtypes == "float32"):
@@ -532,11 +501,11 @@ def test_ckde_cdf():
     def _test_ckde_cdf(variable, evidence, _df, _test_df):
         cpd = pbn.CKDE(variable, evidence)
         cpd.fit(_df)
-        scipy_kde_joint, scipy_kde_marg = train_scipy_ckde(_df, variable, evidence)
+        scipy_kde_joint, scipy_kde_bandwidth = train_scipy_ckde(_df, variable, evidence)
 
         cdf = cpd.cdf(_test_df)
         scipy = scipy_ckde_cdf(
-            _test_df, scipy_kde_joint, scipy_kde_marg, variable, evidence
+            _test_df, scipy_kde_joint, scipy_kde_bandwidth, variable, evidence
         )
 
         if np.all(_df.dtypes == "float32"):

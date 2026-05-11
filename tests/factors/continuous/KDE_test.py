@@ -3,7 +3,8 @@ import pyarrow as pa
 import pybnesian as pbn
 import pytest
 from helpers.data import generate_normal_data
-from scipy.stats import gaussian_kde
+from helpers.kde import diagonal_kde_logpdf, normal_reference_bandwidth
+from scipy.special import logsumexp
 
 SIZE = 500
 df = generate_normal_data(SIZE, seed=0)
@@ -60,36 +61,34 @@ def test_kde_bandwidth():
 
     for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
         for instances in [50, 1000, 10000]:
-            npdata = df.loc[:, variables].to_numpy()
-            # Test normal reference rule
-            scipy_kde = gaussian_kde(
-                npdata[:instances, :].T,
-                bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-                * s.scotts_factor(),
-            )
+            training_df = df.iloc[:instances].loc[:, variables].dropna()
+            bandwidth = normal_reference_bandwidth(training_df, variables)
 
             cpd = pbn.KDE(variables)
             cpd.fit(df.iloc[:instances])
             assert np.all(
-                np.isclose(cpd.bandwidth, scipy_kde.covariance)
+                np.isclose(cpd.bandwidth, np.diag(bandwidth))
             ), "Wrong bandwidth computed with normal reference rule."
 
             cpd.fit(df_float.iloc[:instances])
             assert np.all(
-                np.isclose(cpd.bandwidth, scipy_kde.covariance)
+                np.isclose(cpd.bandwidth, np.diag(bandwidth))
             ), "Wrong bandwidth computed with normal reference rule."
 
-            scipy_kde = gaussian_kde(npdata[:instances, :].T)
+            scott_bandwidth = (
+                np.power(training_df.shape[0], -2 / (len(variables) + 4))
+                * training_df.var().to_numpy()
+            )
 
             cpd = pbn.KDE(variables, pbn.ScottsBandwidth())
             cpd.fit(df.iloc[:instances])
             assert np.all(
-                np.isclose(cpd.bandwidth, scipy_kde.covariance)
+                np.isclose(np.diag(cpd.bandwidth), scott_bandwidth)
             ), "Wrong bandwidth computed with Scott's rule."
 
             cpd.fit(df_float.iloc[:instances])
             assert np.all(
-                np.isclose(cpd.bandwidth, scipy_kde.covariance)
+                np.isclose(np.diag(cpd.bandwidth), scott_bandwidth)
             ), "Wrong bandwidth computed with Scott's rule."
 
     cpd = pbn.KDE(["a"])
@@ -199,15 +198,15 @@ def test_kde_fit():
         cpd.fit(_df.iloc[:instances, :])
         assert cpd.fitted()
 
-        npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
-            npdata[:instances, :].T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
+        bandwidth = normal_reference_bandwidth(
+            _df.iloc[:instances].loc[:, variables].dropna(), variables
         )
 
-        assert scipy_kde.n == cpd.num_instances(), "Wrong number of training instances."
-        assert scipy_kde.d == cpd.num_variables(), "Wrong number of training variables."
+        assert cpd.num_instances() == instances, "Wrong number of training instances."
+        assert (
+            len(variables) == cpd.num_variables()
+        ), "Wrong number of training variables."
+        assert np.all(np.isclose(cpd.bandwidth, np.diag(bandwidth)))
 
     for variables in [["a"], ["b", "a"], ["c", "a", "b"], ["d", "a", "b", "c"]]:
         for instances in [50, 150, 500]:
@@ -236,21 +235,17 @@ def test_kde_fit_null():
         npdata_instances = npdata[:instances, :]
 
         nan_rows = np.any(np.isnan(npdata_instances), axis=1)
-        npdata_no_null = npdata_instances[~nan_rows, :]
-        scipy_kde = gaussian_kde(
-            npdata_no_null.T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        training_df = _df.iloc[:instances].loc[:, variables].dropna()
+        bandwidth = normal_reference_bandwidth(training_df, variables)
 
         assert (
-            scipy_kde.n == cpd.num_instances()
+            training_df.shape[0] == cpd.num_instances()
         ), "Wrong number of training instances with null values."
         assert (
-            scipy_kde.d == cpd.num_variables()
+            len(variables) == cpd.num_variables()
         ), "Wrong number of training variables with null values."
         assert np.all(
-            np.isclose(scipy_kde.covariance, cpd.bandwidth)
+            np.isclose(cpd.bandwidth, np.diag(bandwidth))
         ), "Wrong bandwidth with null values."
 
     np.random.seed(0)
@@ -297,26 +292,12 @@ def test_kde_logl():
         )
         cpd.fit(_df)
 
-        scipy_kde = gaussian_kde(
-            dataset=npdata.T,
-            # bw_method="scott",
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),  # Normal Reference Rule multiplies Scott's factor and then standard deviation
-        )
-
-        # TODO: Add tests to check this
-        # NOTE
-        # scipy_kde.factor == scipy_kde.covariance_factor() <-- coefficient (kde.factor) that squared, multiplies the data covariance matrix to obtain the kernel covariance matrix.
-        # scipy_kde.covariance == scipy_kde.factor ** 2 * npdata.var()
-        # scipy_kde.inv_cov == 1 / scipy_kde.covariance
-        # We check that the bandwidth is the same
-        # TODO: Add tests to check "scott" bandwidth selectors
-        assert np.all(np.isclose(cpd.bandwidth, scipy_kde.covariance))
-
-        test_npdata = _test_df.loc[:, variables].to_numpy()
+        training_df = _df.loc[:, variables].dropna()
+        bandwidth = normal_reference_bandwidth(training_df, variables)
+        assert np.all(np.isclose(cpd.bandwidth, np.diag(bandwidth)))
 
         logl = cpd.logl(_test_df)
-        scipy_logl = scipy_kde.logpdf(test_npdata.T)
+        scipy_logl = diagonal_kde_logpdf(_test_df, training_df, variables, bandwidth)
 
         if np.all(_df.dtypes == "float32"):
             assert np.all(np.isclose(logl, scipy_logl, atol=0.0005))
@@ -362,12 +343,8 @@ def test_kde_logl_null():
         cpd = pbn.KDE(variables)
         cpd.fit(_df)
 
-        npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
-            npdata.T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        training_df = _df.loc[:, variables].dropna()
+        bandwidth = normal_reference_bandwidth(training_df, variables)
         # We initialize the logl and scipy_logl columns with NaN
         _test_df["logl"] = np.nan
         _test_df["scipy_logl"] = np.nan
@@ -377,11 +354,11 @@ def test_kde_logl_null():
 
         # We calculate the logl with scipy (we have to avoid NaN values)
         non_nan_index = _test_df[variables].notna().all(1)
-        _test_df.loc[non_nan_index, "scipy_logl"] = scipy_kde.logpdf(
-            _test_df.loc[non_nan_index, variables].T.to_numpy()
+        _test_df.loc[non_nan_index, "scipy_logl"] = diagonal_kde_logpdf(
+            _test_df.loc[non_nan_index], training_df, variables, bandwidth
         )
 
-        if npdata.dtype == "float32":
+        if np.all(_df.dtypes == "float32"):
             assert np.all(
                 np.isclose(
                     _test_df["logl"],
@@ -459,16 +436,14 @@ def test_kde_slogl():
         cpd = pbn.KDE(variables)
         cpd.fit(_df)
 
-        npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
-            npdata.T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        training_df = _df.loc[:, variables].dropna()
+        bandwidth = normal_reference_bandwidth(training_df, variables)
 
-        test_npdata = _test_df.loc[:, variables].to_numpy()
         assert np.all(
-            np.isclose(cpd.slogl(_test_df), scipy_kde.logpdf(test_npdata.T).sum())
+            np.isclose(
+                cpd.slogl(_test_df),
+                diagonal_kde_logpdf(_test_df, training_df, variables, bandwidth).sum(),
+            )
         )
 
     test_df = generate_normal_data(50, seed=1)
@@ -510,19 +485,15 @@ def test_kde_slogl_null():
         cpd = pbn.KDE(variables)
         cpd.fit(_df)
 
-        npdata = _df.loc[:, variables].to_numpy()
-        scipy_kde = gaussian_kde(
-            npdata.T,
-            bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-            * s.scotts_factor(),
-        )
+        training_df = _df.loc[:, variables].dropna()
+        bandwidth = normal_reference_bandwidth(training_df, variables)
         # We initialize the logl and scipy_logl columns with NaN
         _test_df["scipy_logl"] = np.nan
         slogl = cpd.slogl(_test_df)
         # We calculate the logl with scipy (we have to avoid NaN values)
         non_nan_index = _test_df[variables].notna().all(1)
-        scipy_slogl = scipy_kde.logpdf(
-            _test_df.loc[non_nan_index, variables].T.to_numpy()
+        scipy_slogl = diagonal_kde_logpdf(
+            _test_df.loc[non_nan_index], training_df, variables, bandwidth
         ).sum()
 
         assert np.all(np.isclose(slogl, scipy_slogl))

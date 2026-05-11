@@ -3,7 +3,8 @@ import pandas as pd
 import pybnesian as pbn
 import pytest
 from helpers.data import generate_normal_data
-from scipy.stats import gaussian_kde, norm
+from helpers.kde import diagonal_kde_logpdf, normal_reference_bandwidth
+from scipy.stats import norm
 
 SIZE = 1000
 df = generate_normal_data(SIZE)
@@ -37,21 +38,24 @@ def numpy_local_score(
             loglik += norm.logpdf(test_variable_data, means, np.sqrt(var)).sum()
 
         elif node_type == pbn.CKDEType():
-            k_joint = gaussian_kde(
-                node_data.to_numpy().T,
-                bw_method=lambda s: np.power(4 / (s.d + 2), 1 / (s.d + 4))
-                * s.scotts_factor(),
-            )
+            joint_variables = [variable] + evidence
+            joint_bandwidth = normal_reference_bandwidth(node_data, joint_variables)
             if evidence:
-                k_marg = gaussian_kde(
-                    evidence_data.to_numpy().T, bw_method=k_joint.factor
-                )
+                marg_bandwidth = joint_bandwidth[1:]
                 loglik += np.sum(
-                    k_joint.logpdf(test_node_data.to_numpy().T)
-                    - k_marg.logpdf(test_evidence_data.to_numpy().T)
+                    diagonal_kde_logpdf(
+                        test_node_data, node_data, joint_variables, joint_bandwidth
+                    )
+                    - diagonal_kde_logpdf(
+                        test_evidence_data, evidence_data, evidence, marg_bandwidth
+                    )
                 )
             else:
-                loglik += np.sum(k_joint.logpdf(test_node_data.to_numpy().T))
+                loglik += np.sum(
+                    diagonal_kde_logpdf(
+                        test_node_data, node_data, joint_variables, joint_bandwidth
+                    )
+                )
 
     return loglik
 
