@@ -50,6 +50,16 @@ jobs:
           VCPKG_ENV_PASSTHROUGH: MACOSX_DEPLOYMENT_TARGET
         run: python -m cibuildwheel --output-dir wheelhouse
 
+      - name: Upload vcpkg logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-logs-${{ matrix.os }}
+          path: |
+            vcpkg/buildtrees/**/*.log
+            vcpkg/buildtrees/**/config-*-out.log
+            vcpkg-manifest-install.log
+
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-wheels-${{ matrix.os }}
