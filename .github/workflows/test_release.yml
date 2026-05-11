@@ -36,6 +36,11 @@ jobs:
 
       - name: Build wheels
         if: runner.os != 'macOS'
+        env:
+          CIBW_BEFORE_BUILD: |
+            mkdir -p /io/vcpkg-logs || true
+            cp -r /project/vcpkg/buildtrees /io/vcpkg-logs/ || true
+            cp /project/vcpkg-manifest-install.log /io/vcpkg-logs/ || true
         run: python -m cibuildwheel --output-dir wheelhouse
 
       - name: Build wheels
@@ -52,6 +57,7 @@ jobs:
         with:
           name: vcpkg-logs-${{ matrix.os }}
           path: |
+            vcpkg-logs/**
             vcpkg/buildtrees/**/*.log
             vcpkg/buildtrees/**/config-*-out.log
             vcpkg-manifest-install.log
