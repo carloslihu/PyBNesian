@@ -22,8 +22,8 @@ copyright = "2024, David Atienza"
 author = "David Atienza, Carlos Li Hu"
 
 # The full version, including alpha/beta/rc tags
-version = "0.5.3"
-release = "0.5.3"
+version = "0.6.0"
+release = "0.6.0"
 
 
 # -- General configuration ---------------------------------------------------

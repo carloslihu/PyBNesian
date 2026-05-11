@@ -1,4 +1,11 @@
 # Changelog
+## 0.6.0
+- Fixed a bug with LinearGaussianCPD sampling
+- Fixed pytests to work with diagonal bandwidth matrix.
+- Added delta index comparator to fix seed in hc learning
+- Refactor variable names in serialization tests to lowercase
+- Updated installation guide with improved instructions and additional dependencies
+
 
 ## 0.5.3
 - Updated KDE bandwidth calculation to use diagonal covariance matrix instead of full covariance matrix. This change allows for more efficient bandwidth estimation and can improve the performance of KDE in high-dimensional spaces.
