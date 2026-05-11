@@ -41,9 +41,9 @@ def test_meek_rule3():
 def test_meek_sequential():
     # From Koller Chapter 3.4, Figure 3.13, pag 90.
     koller = pbn.PartiallyDirectedGraph(
-        ["A", "B", "C", "D", "E", "F", "G"],
-        [("B", "E"), ("C", "E")],
-        [("A", "B"), ("B", "D"), ("C", "F"), ("E", "F"), ("F", "G")],
+        ["a", "b", "c", "d", "E", "F", "G"],
+        [("b", "E"), ("c", "E")],
+        [("a", "b"), ("b", "d"), ("c", "F"), ("E", "F"), ("F", "G")],
     )
     changed = True
     while changed:
@@ -52,7 +52,7 @@ def test_meek_sequential():
         changed = changed or pbn.MeekRules.rule2(koller)
         changed = changed or pbn.MeekRules.rule3(koller)
 
-    assert set(koller.edges()) == set([("A", "B"), ("B", "D")])
+    assert set(koller.edges()) == set([("a", "b"), ("b", "d")])
     assert set(koller.arcs()) == set(
-        [("B", "E"), ("C", "E"), ("E", "F"), ("C", "F"), ("F", "G")]
+        [("b", "E"), ("c", "E"), ("E", "F"), ("c", "F"), ("F", "G")]
     )

@@ -7,86 +7,86 @@ df = generate_normal_data(DATA_SIZE)
 
 
 def test_create_gaussian_bn():
-    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
+    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
 
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 0
-    assert gbn.nodes() == ["A", "B", "C", "D"]
+    assert gbn.nodes() == ["a", "b", "c", "d"]
 
-    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "C")])
+    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"], [("a", "c")])
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 1
-    assert gbn.nodes() == ["A", "B", "C", "D"]
+    assert gbn.nodes() == ["a", "b", "c", "d"]
 
-    gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+    gbn = pbn.GaussianNetwork([("a", "c"), ("b", "d"), ("c", "d")])
     assert gbn.num_nodes() == 4
     assert gbn.num_arcs() == 3
-    assert gbn.nodes() == ["A", "C", "B", "D"]
+    assert gbn.nodes() == ["a", "c", "b", "d"]
 
     with pytest.raises(TypeError) as ex:
-        gbn = pbn.GaussianNetwork(["A", "B", "C"], [("A", "C", "B")])
+        gbn = pbn.GaussianNetwork(["a", "b", "c"], [("a", "c", "b")])
     assert "incompatible constructor arguments" in str(ex.value)
 
     with pytest.raises(IndexError) as ex:
-        gbn = pbn.GaussianNetwork(["A", "B", "C"], [("A", "D")])
+        gbn = pbn.GaussianNetwork(["a", "b", "c"], [("a", "d")])
     assert "not present in the graph" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn = pbn.GaussianNetwork([("A", "B"), ("B", "C"), ("C", "A")])
+        gbn = pbn.GaussianNetwork([("a", "b"), ("b", "c"), ("c", "a")])
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
         gbn = pbn.GaussianNetwork(
-            ["A", "B", "C", "D"], [("A", "B"), ("B", "C"), ("C", "A")]
+            ["a", "b", "c", "d"], [("a", "b"), ("b", "c"), ("c", "a")]
         )
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
         gbn = pbn.BayesianNetwork(
-            pbn.GaussianNetworkType(), ["A", "B", "C", "D"], [], [("A", pbn.CKDEType())]
+            pbn.GaussianNetworkType(), ["a", "b", "c", "d"], [], [("a", pbn.CKDEType())]
         )
     assert "Wrong factor type" in str(ex.value)
 
 
 def test_create_discrete_bn():
-    dbn = pbn.DiscreteBN(["A", "B", "C", "D"])
+    dbn = pbn.DiscreteBN(["a", "b", "c", "d"])
 
     assert dbn.num_nodes() == 4
     assert dbn.num_arcs() == 0
-    assert dbn.nodes() == ["A", "B", "C", "D"]
+    assert dbn.nodes() == ["a", "b", "c", "d"]
 
-    dbn = pbn.DiscreteBN(["A", "B", "C", "D"], [("A", "C")])
+    dbn = pbn.DiscreteBN(["a", "b", "c", "d"], [("a", "c")])
     assert dbn.num_nodes() == 4
     assert dbn.num_arcs() == 1
-    assert dbn.nodes() == ["A", "B", "C", "D"]
+    assert dbn.nodes() == ["a", "b", "c", "d"]
 
-    dbn = pbn.DiscreteBN([("A", "C"), ("B", "D"), ("C", "D")])
+    dbn = pbn.DiscreteBN([("a", "c"), ("b", "d"), ("c", "d")])
     assert dbn.num_nodes() == 4
     assert dbn.num_arcs() == 3
-    assert dbn.nodes() == ["A", "C", "B", "D"]
+    assert dbn.nodes() == ["a", "c", "b", "d"]
 
     with pytest.raises(TypeError) as ex:
-        dbn = pbn.DiscreteBN(["A", "B", "C"], [("A", "C", "B")])
+        dbn = pbn.DiscreteBN(["a", "b", "c"], [("a", "c", "b")])
     assert "incompatible constructor arguments" in str(ex.value)
 
     with pytest.raises(IndexError) as ex:
-        dbn = pbn.DiscreteBN(["A", "B", "C"], [("A", "D")])
+        dbn = pbn.DiscreteBN(["a", "b", "c"], [("a", "d")])
     assert "not present in the graph" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        dbn = pbn.DiscreteBN([("A", "B"), ("B", "C"), ("C", "A")])
+        dbn = pbn.DiscreteBN([("a", "b"), ("b", "c"), ("c", "a")])
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        dbn = pbn.DiscreteBN(["A", "B", "C", "D"], [("A", "B"), ("B", "C"), ("C", "A")])
+        dbn = pbn.DiscreteBN(["a", "b", "c", "d"], [("a", "b"), ("b", "c"), ("c", "a")])
     assert "must be a DAG" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
         dbn = pbn.BayesianNetwork(
             pbn.DiscreteBNType(),
-            ["A", "B", "C", "D"],
+            ["a", "b", "c", "d"],
             [],
-            [("A", pbn.CKDEType())],
+            [("a", pbn.CKDEType())],
         )
     assert "Wrong factor type" in str(ex.value)
 
@@ -94,11 +94,11 @@ def test_create_discrete_bn():
 def test_nodes_util():
     def gbn_generator():
         # Test different Networks created with different constructors.
-        gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
+        gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
         yield gbn
-        gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+        gbn = pbn.GaussianNetwork([("a", "c"), ("b", "d"), ("c", "d")])
         yield gbn
-        gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
+        gbn = pbn.GaussianNetwork(["a", "b", "c", "d"], [("a", "b"), ("b", "c")])
         yield gbn
 
     for gbn in gbn_generator():
@@ -107,171 +107,171 @@ def test_nodes_util():
         nodes = gbn.nodes()
         indices = gbn.indices()
 
-        assert nodes[gbn.index("A")] == "A"
-        assert nodes[gbn.index("B")] == "B"
-        assert nodes[gbn.index("C")] == "C"
-        assert nodes[gbn.index("D")] == "D"
+        assert nodes[gbn.index("a")] == "a"
+        assert nodes[gbn.index("b")] == "b"
+        assert nodes[gbn.index("c")] == "c"
+        assert nodes[gbn.index("d")] == "d"
 
         assert indices[gbn.name(0)] == 0
         assert indices[gbn.name(1)] == 1
         assert indices[gbn.name(2)] == 2
         assert indices[gbn.name(3)] == 3
 
-        assert gbn.contains_node("A")
-        assert gbn.contains_node("B")
-        assert gbn.contains_node("C")
-        assert gbn.contains_node("D")
+        assert gbn.contains_node("a")
+        assert gbn.contains_node("b")
+        assert gbn.contains_node("c")
+        assert gbn.contains_node("d")
         assert not gbn.contains_node("E")
 
 
 def test_parent_children():
-    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
+    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
 
-    assert gbn.num_parents("A") == 0
-    assert gbn.num_parents("B") == 0
-    assert gbn.num_parents("C") == 0
-    assert gbn.num_parents("D") == 0
+    assert gbn.num_parents("a") == 0
+    assert gbn.num_parents("b") == 0
+    assert gbn.num_parents("c") == 0
+    assert gbn.num_parents("d") == 0
 
-    assert gbn.parents("A") == []
-    assert gbn.parents("B") == []
-    assert gbn.parents("C") == []
-    assert gbn.parents("D") == []
+    assert gbn.parents("a") == []
+    assert gbn.parents("b") == []
+    assert gbn.parents("c") == []
+    assert gbn.parents("d") == []
 
-    assert gbn.num_children("A") == 0
-    assert gbn.num_children("B") == 0
-    assert gbn.num_children("C") == 0
-    assert gbn.num_children("D") == 0
+    assert gbn.num_children("a") == 0
+    assert gbn.num_children("b") == 0
+    assert gbn.num_children("c") == 0
+    assert gbn.num_children("d") == 0
 
-    gbn = pbn.GaussianNetwork([("A", "C"), ("B", "D"), ("C", "D")])
+    gbn = pbn.GaussianNetwork([("a", "c"), ("b", "d"), ("c", "d")])
 
-    assert gbn.num_parents("A") == 0
-    assert gbn.num_parents("B") == 0
-    assert gbn.num_parents("C") == 1
-    assert gbn.num_parents("D") == 2
+    assert gbn.num_parents("a") == 0
+    assert gbn.num_parents("b") == 0
+    assert gbn.num_parents("c") == 1
+    assert gbn.num_parents("d") == 2
 
-    assert gbn.parents("A") == []
-    assert gbn.parents("B") == []
-    assert gbn.parents("C") == ["A"]
-    assert set(gbn.parents("D")) == set(["B", "C"])
+    assert gbn.parents("a") == []
+    assert gbn.parents("b") == []
+    assert gbn.parents("c") == ["a"]
+    assert set(gbn.parents("d")) == set(["b", "c"])
 
-    assert gbn.num_children("A") == 1
-    assert gbn.num_children("B") == 1
-    assert gbn.num_children("C") == 1
-    assert gbn.num_children("D") == 0
+    assert gbn.num_children("a") == 1
+    assert gbn.num_children("b") == 1
+    assert gbn.num_children("c") == 1
+    assert gbn.num_children("d") == 0
 
-    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"], [("A", "B"), ("B", "C")])
+    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"], [("a", "b"), ("b", "c")])
 
-    assert gbn.num_parents("A") == 0
-    assert gbn.num_parents("B") == 1
-    assert gbn.num_parents("C") == 1
-    assert gbn.num_parents("D") == 0
+    assert gbn.num_parents("a") == 0
+    assert gbn.num_parents("b") == 1
+    assert gbn.num_parents("c") == 1
+    assert gbn.num_parents("d") == 0
 
-    assert gbn.parents("A") == []
-    assert gbn.parents("B") == ["A"]
-    assert gbn.parents("C") == ["B"]
-    assert gbn.parents("D") == []
+    assert gbn.parents("a") == []
+    assert gbn.parents("b") == ["a"]
+    assert gbn.parents("c") == ["b"]
+    assert gbn.parents("d") == []
 
-    assert gbn.num_children("A") == 1
-    assert gbn.num_children("B") == 1
-    assert gbn.num_children("C") == 0
-    assert gbn.num_children("D") == 0
+    assert gbn.num_children("a") == 1
+    assert gbn.num_children("b") == 1
+    assert gbn.num_children("c") == 0
+    assert gbn.num_children("d") == 0
 
 
 def test_arcs():
-    gbn = pbn.GaussianNetwork(["A", "B", "C", "D"])
+    gbn = pbn.GaussianNetwork(["a", "b", "c", "d"])
 
     assert gbn.num_arcs() == 0
     assert gbn.arcs() == []
-    assert not gbn.has_arc("A", "B")
+    assert not gbn.has_arc("a", "b")
 
-    gbn.add_arc("A", "B")
+    gbn.add_arc("a", "b")
     assert gbn.num_arcs() == 1
-    assert gbn.arcs() == [("A", "B")]
-    assert gbn.parents("B") == ["A"]
-    assert gbn.num_parents("B") == 1
-    assert gbn.num_children("A") == 1
-    assert gbn.has_arc("A", "B")
+    assert gbn.arcs() == [("a", "b")]
+    assert gbn.parents("b") == ["a"]
+    assert gbn.num_parents("b") == 1
+    assert gbn.num_children("a") == 1
+    assert gbn.has_arc("a", "b")
 
-    gbn.add_arc("B", "C")
+    gbn.add_arc("b", "c")
     assert gbn.num_arcs() == 2
-    assert set(gbn.arcs()) == set([("A", "B"), ("B", "C")])
-    assert gbn.parents("C") == ["B"]
-    assert gbn.num_parents("C") == 1
-    assert gbn.num_children("B") == 1
-    assert gbn.has_arc("B", "C")
+    assert set(gbn.arcs()) == set([("a", "b"), ("b", "c")])
+    assert gbn.parents("c") == ["b"]
+    assert gbn.num_parents("c") == 1
+    assert gbn.num_children("b") == 1
+    assert gbn.has_arc("b", "c")
 
-    gbn.add_arc("D", "C")
+    gbn.add_arc("d", "c")
     assert gbn.num_arcs() == 3
-    assert set(gbn.arcs()) == set([("A", "B"), ("B", "C"), ("D", "C")])
-    assert set(gbn.parents("C")) == set(["B", "D"])
-    assert gbn.num_parents("C") == 2
-    assert gbn.num_children("D") == 1
-    assert gbn.has_arc("D", "C")
+    assert set(gbn.arcs()) == set([("a", "b"), ("b", "c"), ("d", "c")])
+    assert set(gbn.parents("c")) == set(["b", "d"])
+    assert gbn.num_parents("c") == 2
+    assert gbn.num_children("d") == 1
+    assert gbn.has_arc("d", "c")
 
-    assert gbn.has_path("A", "C")
-    assert not gbn.has_path("A", "D")
-    assert gbn.has_path("B", "C")
-    assert gbn.has_path("D", "C")
+    assert gbn.has_path("a", "c")
+    assert not gbn.has_path("a", "d")
+    assert gbn.has_path("b", "c")
+    assert gbn.has_path("d", "c")
 
-    assert not gbn.can_add_arc("C", "A")
+    assert not gbn.can_add_arc("c", "a")
     # This edge exists, but virtually we consider that the addition is allowed.
-    assert gbn.can_add_arc("B", "C")
-    assert gbn.can_add_arc("D", "A")
+    assert gbn.can_add_arc("b", "c")
+    assert gbn.can_add_arc("d", "a")
 
-    gbn.add_arc("B", "D")
+    gbn.add_arc("b", "d")
     assert gbn.num_arcs() == 4
-    assert set(gbn.arcs()) == set([("A", "B"), ("B", "C"), ("D", "C"), ("B", "D")])
-    assert gbn.parents("D") == ["B"]
-    assert gbn.num_parents("D") == 1
-    assert gbn.num_children("B") == 2
-    assert gbn.has_arc("B", "D")
+    assert set(gbn.arcs()) == set([("a", "b"), ("b", "c"), ("d", "c"), ("b", "d")])
+    assert gbn.parents("d") == ["b"]
+    assert gbn.num_parents("d") == 1
+    assert gbn.num_children("b") == 2
+    assert gbn.has_arc("b", "d")
 
-    assert gbn.has_path("A", "D")
-    assert not gbn.can_add_arc("D", "A")
-    assert not gbn.can_flip_arc("B", "C")
-    assert gbn.can_flip_arc("A", "B")
+    assert gbn.has_path("a", "d")
+    assert not gbn.can_add_arc("d", "a")
+    assert not gbn.can_flip_arc("b", "c")
+    assert gbn.can_flip_arc("a", "b")
     # This edge does not exist, but it could be flipped if it did.
-    assert gbn.can_flip_arc("D", "A")
+    assert gbn.can_flip_arc("d", "a")
 
     # We can add an edge twice without changes.
-    gbn.add_arc("B", "D")
+    gbn.add_arc("b", "d")
     assert gbn.num_arcs() == 4
-    assert set(gbn.arcs()) == set([("A", "B"), ("B", "C"), ("D", "C"), ("B", "D")])
-    assert gbn.parents("D") == ["B"]
-    assert gbn.num_parents("D") == 1
-    assert gbn.num_children("B") == 2
-    assert gbn.has_arc("B", "D")
+    assert set(gbn.arcs()) == set([("a", "b"), ("b", "c"), ("d", "c"), ("b", "d")])
+    assert gbn.parents("d") == ["b"]
+    assert gbn.num_parents("d") == 1
+    assert gbn.num_children("b") == 2
+    assert gbn.has_arc("b", "d")
 
-    gbn.remove_arc("B", "C")
+    gbn.remove_arc("b", "c")
     assert gbn.num_arcs() == 3
-    assert set(gbn.arcs()) == set([("A", "B"), ("D", "C"), ("B", "D")])
-    assert gbn.parents("C") == ["D"]
-    assert gbn.num_parents("C") == 1
-    assert gbn.num_children("B") == 1
-    assert not gbn.has_arc("B", "C")
+    assert set(gbn.arcs()) == set([("a", "b"), ("d", "c"), ("b", "d")])
+    assert gbn.parents("c") == ["d"]
+    assert gbn.num_parents("c") == 1
+    assert gbn.num_children("b") == 1
+    assert not gbn.has_arc("b", "c")
 
-    assert gbn.can_add_arc("B", "C")
-    assert not gbn.can_add_arc("C", "B")
-    assert gbn.has_path("A", "C")
-    assert gbn.has_path("B", "C")
+    assert gbn.can_add_arc("b", "c")
+    assert not gbn.can_add_arc("c", "b")
+    assert gbn.has_path("a", "c")
+    assert gbn.has_path("b", "c")
 
-    gbn.remove_arc("D", "C")
+    gbn.remove_arc("d", "c")
     assert gbn.num_arcs() == 2
-    assert set(gbn.arcs()) == set([("A", "B"), ("B", "D")])
-    assert gbn.parents("C") == []
-    assert gbn.num_parents("C") == 0
-    assert gbn.num_children("D") == 0
-    assert not gbn.has_arc("D", "C")
+    assert set(gbn.arcs()) == set([("a", "b"), ("b", "d")])
+    assert gbn.parents("c") == []
+    assert gbn.num_parents("c") == 0
+    assert gbn.num_children("d") == 0
+    assert not gbn.has_arc("d", "c")
 
-    assert gbn.can_add_arc("B", "C")
-    assert gbn.can_add_arc("C", "B")
-    assert not gbn.has_path("A", "C")
-    assert not gbn.has_path("B", "C")
+    assert gbn.can_add_arc("b", "c")
+    assert gbn.can_add_arc("c", "b")
+    assert not gbn.has_path("a", "c")
+    assert not gbn.has_path("b", "c")
 
 
 def test_bn_fit():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     with pytest.raises(ValueError) as ex:
@@ -288,20 +288,20 @@ def test_bn_fit():
 
     gbn.fit(df)
 
-    gbn.remove_arc("A", "B")
+    gbn.remove_arc("a", "b")
 
-    cpd_b = gbn.cpd("B")
-    assert cpd_b.evidence != gbn.parents("B")
+    cpd_b = gbn.cpd("b")
+    assert cpd_b.evidence != gbn.parents("b")
 
     gbn.fit(df)
 
-    cpd_b = gbn.cpd("B")
-    assert cpd_b.evidence() == gbn.parents("B")
+    cpd_b = gbn.cpd("b")
+    assert cpd_b.evidence() == gbn.parents("b")
 
 
 def test_add_cpds():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     with pytest.raises(ValueError) as ex:
@@ -309,51 +309,51 @@ def test_add_cpds():
     assert "variable which is not present" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn.add_cpds([pbn.LinearGaussianCPD("A", ["E"])])
+        gbn.add_cpds([pbn.LinearGaussianCPD("a", ["E"])])
     assert "Evidence variable" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn.add_cpds([pbn.LinearGaussianCPD("A", ["B"])])
+        gbn.add_cpds([pbn.LinearGaussianCPD("a", ["b"])])
     assert "CPD do not have the model's parent set as evidence" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn.add_cpds([pbn.LinearGaussianCPD("B", [])])
+        gbn.add_cpds([pbn.LinearGaussianCPD("b", [])])
     assert "CPD do not have the model's parent set as evidence" in str(ex.value)
 
     with pytest.raises(ValueError) as ex:
-        gbn.add_cpds([pbn.LinearGaussianCPD("B", ["C"])])
+        gbn.add_cpds([pbn.LinearGaussianCPD("b", ["c"])])
     assert "CPD do not have the model's parent set as evidence" in str(ex.value)
 
-    lg = pbn.LinearGaussianCPD("B", ["A"], [2.5, 1.65], 4)
+    lg = pbn.LinearGaussianCPD("b", ["a"], [2.5, 1.65], 4)
     assert lg.fitted()
 
     gbn.add_cpds([lg])
 
-    cpd_b = gbn.cpd("B")
-    assert cpd_b.variable() == "B"
-    assert cpd_b.evidence() == ["A"]
+    cpd_b = gbn.cpd("b")
+    assert cpd_b.variable() == "b"
+    assert cpd_b.evidence() == ["a"]
     assert cpd_b.fitted()
     assert np.all(cpd_b.beta == np.asarray([2.5, 1.65]))
     assert cpd_b.variance == 4
 
     with pytest.raises(ValueError) as ex:
-        gbn.cpd("A")
+        gbn.cpd("a")
     assert (
-        'CPD of variable "A" not added. Call add_cpds() or fit() to add the CPD.'
+        'CPD of variable "a" not added. Call add_cpds() or fit() to add the CPD.'
         in str(ex.value)
     )
 
     with pytest.raises(ValueError) as ex:
-        gbn.cpd("C")
+        gbn.cpd("c")
     assert (
-        'CPD of variable "C" not added. Call add_cpds() or fit() to add the CPD.'
+        'CPD of variable "c" not added. Call add_cpds() or fit() to add the CPD.'
         in str(ex.value)
     )
 
     with pytest.raises(ValueError) as ex:
-        gbn.cpd("D")
+        gbn.cpd("d")
     assert (
-        'CPD of variable "D" not added. Call add_cpds() or fit() to add the CPD.'
+        'CPD of variable "d" not added. Call add_cpds() or fit() to add the CPD.'
         in str(ex.value)
     )
 
@@ -364,7 +364,7 @@ def test_add_cpds():
 
 def test_bn_logl():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     gbn.fit(df)
@@ -391,19 +391,19 @@ def test_bn_logl():
 
 def test_bn_sample():
     gbn = pbn.GaussianNetwork(
-        ["A", "C", "B", "D"],
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
+        ["a", "c", "b", "d"],
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
     )
 
     gbn.fit(df)
     sample = gbn.sample(1000, 0, False)
 
     # Not ordered, so topological sort.
-    assert sample.schema.names == ["A", "B", "C", "D"]
+    assert sample.schema.names == ["a", "b", "c", "d"]
     assert sample.num_rows == 1000
 
     sample_ordered = gbn.sample(1000, 0, True)
-    assert sample_ordered.schema.names == ["A", "C", "B", "D"]
+    assert sample_ordered.schema.names == ["a", "c", "b", "d"]
     assert sample_ordered.num_rows == 1000
 
     assert sample.column(0).equals(sample_ordered.column(0))

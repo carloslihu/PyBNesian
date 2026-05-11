@@ -9,7 +9,7 @@ df = generate_discrete_data(DATA_SIZE)
 
 
 def test_data_type():
-    a = pbn.DiscreteFactor("A", [])
+    a = pbn.DiscreteFactor("a", [])
     with pytest.raises(ValueError) as ex:
         a.data_type()
     assert "DiscreteFactor factor not fitted." in str(ex.value)
@@ -20,32 +20,32 @@ def test_data_type():
         categories=categories,
         ordered=False,
     )
-    df = pd.DataFrame({"A": a_values})
+    df = pd.DataFrame({"a": a_values})
     a.fit(df)
     assert a.data_type() == pa.dictionary(pa.int8(), pa.string())
 
-    categories = np.asarray(["A" + str(i) for i in range(1, 129)])
+    categories = np.asarray(["a" + str(i) for i in range(1, 129)])
     a_values = pd.Categorical(
         categories[np.random.randint(len(categories), size=100)],
         categories=categories,
         ordered=False,
     )
-    df = pd.DataFrame({"A": a_values})
+    df = pd.DataFrame({"a": a_values})
     a.fit(df)
     assert a.data_type() == pa.dictionary(pa.int8(), pa.string())
 
-    categories = np.asarray(["A" + str(i) for i in range(1, 130)])
+    categories = np.asarray(["a" + str(i) for i in range(1, 130)])
     a_values = pd.Categorical(
         categories[np.random.randint(len(categories), size=100)],
         categories=categories,
         ordered=False,
     )
-    df = pd.DataFrame({"A": a_values})
+    df = pd.DataFrame({"a": a_values})
     a.fit(df)
     assert a.data_type() == pa.dictionary(pa.int16(), pa.string())
 
 
 def test_fit():
     # a = DiscreteFactor('C', ['A', 'B'])
-    a = pbn.DiscreteFactor("C", [])
+    a = pbn.DiscreteFactor("c", [])
     a.fit(df)

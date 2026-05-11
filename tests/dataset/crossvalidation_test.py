@@ -95,73 +95,73 @@ def test_cv_num_folds():
 def test_cv_loc():
     cv = pbn.CrossValidation(df)
 
-    for train_df, test_df in cv.loc("A"):
+    for train_df, test_df in cv.loc("a"):
         assert (
             train_df.num_columns == 1
-        ), 'Only column "A" must be present in train DataFrame.'
+        ), 'Only column "a" must be present in train DataFrame.'
         assert (
             test_df.num_columns == 1
-        ), 'Only column "A" must be present in test DataFrame.'
+        ), 'Only column "a" must be present in test DataFrame.'
         train_schema = train_df.schema
         test_schema = test_df.schema
         assert train_schema.names == [
-            "A"
-        ], 'Only column "A" must be present in train DataFrame.'
+            "a"
+        ], 'Only column "a" must be present in train DataFrame.'
         assert test_schema.names == [
-            "A"
-        ], 'Only column "A" must be present in test DataFrame.'
+            "a"
+        ], 'Only column "a" must be present in test DataFrame.'
 
     for train_df, test_df in cv.loc(1):
         assert (
             train_df.num_columns == 1
-        ), 'Only column "B" must be present in train DataFrame.'
+        ), 'Only column "b" must be present in train DataFrame.'
         assert (
             test_df.num_columns == 1
-        ), 'Only column "B" must be present in test DataFrame.'
+        ), 'Only column "b" must be present in test DataFrame.'
         train_schema = train_df.schema
         test_schema = test_df.schema
         assert train_schema.names == [
-            "B"
-        ], 'Only column "B" must be present in train DataFrame.'
+            "b"
+        ], 'Only column "b" must be present in train DataFrame.'
         assert test_schema.names == [
-            "B"
-        ], 'Only column "B" must be present in test DataFrame.'
+            "b"
+        ], 'Only column "b" must be present in test DataFrame.'
 
-    for train_df, test_df in cv.loc(["B", "D"]):
+    for train_df, test_df in cv.loc(["b", "d"]):
         assert (
             train_df.num_columns == 2
-        ), 'Only columns ["B", "D"] must be present in train DataFrame.'
+        ), 'Only columns ["b", "d"] must be present in train DataFrame.'
         assert (
             test_df.num_columns == 2
-        ), 'Only column ["B", "D"] must be present in test DataFrame.'
+        ), 'Only column ["b", "d"] must be present in test DataFrame.'
         train_schema = train_df.schema
         test_schema = test_df.schema
         assert train_schema.names == [
-            "B",
-            "D",
-        ], 'Only column ["B", "D"] must be present in train DataFrame.'
+            "b",
+            "d",
+        ], 'Only column ["b", "d"] must be present in train DataFrame.'
         assert test_schema.names == [
-            "B",
-            "D",
-        ], 'Only column ["B", "D"] must be present in test DataFrame.'
+            "b",
+            "d",
+        ], 'Only column ["b", "d"] must be present in test DataFrame.'
 
     for train_df, test_df in cv.loc([0, 2]):
         assert (
             train_df.num_columns == 2
-        ), 'Only columns ["A", "C"] must be present in train DataFrame.'
+        ), 'Only columns ["a", "c"] must be present in train DataFrame.'
         assert (
             test_df.num_columns == 2
-        ), 'Only column ["A", "C"] must be present in test DataFrame.'
+        ), 'Only column ["a", "c"] must be present in test DataFrame.'
         train_schema = train_df.schema
         test_schema = test_df.schema
         assert train_schema.names == [
-            "A",
-            "C",
-        ], 'Only column ["A", "C"] must be present in train DataFrame.'
+            "a",
+            "c",
+        ], 'Only column ["a", "c"] must be present in train DataFrame.'
         assert test_schema.names == [
-            "A",
-            "C",
-        ], 'Only column ["A", "C"] must be present in test DataFrame.'
+            "a",
+            "c",
+        ], 'Only column ["a", "c"] must be present in test DataFrame.'
 
 
 def test_cv_null():
@@ -172,10 +172,10 @@ def test_cv_null():
     d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     non_null = df_null.dropna()
     cv = pbn.CrossValidation(df_null)

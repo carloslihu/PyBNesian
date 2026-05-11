@@ -40,8 +40,8 @@ def test_chi_square():
     chi_square = pbn.ChiSquare(discrete_data)
     independent_chi_square = pbn.ChiSquare(independent_discrete_data)
 
-    p_value = chi_square.pvalue("A", "B")
-    independent_p_value = independent_chi_square.pvalue("A", "B")
+    p_value = chi_square.pvalue("a", "b")
+    independent_p_value = independent_chi_square.pvalue("a", "b")
 
     # Check whether the p-values are below the significance level
     assert p_value < 0.05
@@ -51,14 +51,14 @@ def test_chi_square():
 # RFE: Test true and false independence
 def test_linear_correlation():
     """Test the linear correlation independence test with normal data"""
-    df = data[["A", "B"]]
-    independent_df = independent_data[["A", "B"]]
+    df = data[["a", "b"]]
+    independent_df = independent_data[["a", "b"]]
 
     # Pybnesian Linear correlation
     linear_correlation = pbn.LinearCorrelation(df)
     independent_linear_correlation = pbn.LinearCorrelation(independent_df)
-    pvalue = linear_correlation.pvalue("A", "B")
-    independent_pvalue = independent_linear_correlation.pvalue("A", "B")
+    pvalue = linear_correlation.pvalue("a", "b")
+    independent_pvalue = independent_linear_correlation.pvalue("a", "b")
 
     # scipy pearsonr correlation
     correlations = {}
@@ -73,15 +73,15 @@ def test_linear_correlation():
 
     # Compare correlation values
     np.testing.assert_allclose(
-        np.array([df.corr().loc["A", "B"]]),
-        np.array([result.loc["A__B", "PCC"]]),
+        np.array([df.corr().loc["a", "b"]]),
+        np.array([result.loc["a__b", "PCC"]]),
         rtol=1e-5,
         atol=1e-8,
     )
     # Compare p-values
     np.testing.assert_allclose(
         np.array([pvalue]),
-        np.array([result.loc["A__B", "p-value"]]),
+        np.array([result.loc["a__b", "p-value"]]),
         rtol=1e-5,
         atol=1e-8,
     )
@@ -97,13 +97,13 @@ def test_mutual_info():
     independent_mutual_info = pbn.MutualInformation(independent_data)
 
     # Check whether the mutual information is higher when the variables are dependent
-    mutual_info_value = mutual_info.mi("A", "B")
-    independent_mutual_info_value = independent_mutual_info.mi("A", "B")
+    mutual_info_value = mutual_info.mi("a", "b")
+    independent_mutual_info_value = independent_mutual_info.mi("a", "b")
     assert mutual_info_value > independent_mutual_info_value
 
     # Check whether the p-values are below the significance level
-    pvalue = mutual_info.pvalue("A", "B")
-    independent_pvalue = independent_mutual_info.pvalue("A", "B")
+    pvalue = mutual_info.pvalue("a", "b")
+    independent_pvalue = independent_mutual_info.pvalue("a", "b")
     assert pvalue < 0.05
     assert independent_pvalue > 0.05
 
@@ -114,21 +114,21 @@ def test_k_mutual_info():
     independent_k_mutual_info = pbn.KMutualInformation(independent_data, k=N_NEIGHBORS)
 
     # Check whether the mutual information is higher when the variables are dependent
-    k_mutual_info_value = k_mutual_info.mi("A", "B")
-    independent_k_mutual_info_value = independent_k_mutual_info.mi("A", "B")
+    k_mutual_info_value = k_mutual_info.mi("a", "b")
+    independent_k_mutual_info_value = independent_k_mutual_info.mi("a", "b")
     assert k_mutual_info_value > independent_k_mutual_info_value
 
     # Check whether the p-values are below the significance level
     # NOTE: Slow execution
-    pvalue = k_mutual_info.pvalue("A", "B")
-    independent_pvalue = independent_k_mutual_info.pvalue("A", "B")
+    pvalue = k_mutual_info.pvalue("a", "b")
+    independent_pvalue = independent_k_mutual_info.pvalue("a", "b")
     assert pvalue < 0.05
     assert independent_pvalue > 0.05
 
     # RFE: Results vary with scikit-learn, why?
 
     # sklearn_k_mutual_info_value = mutual_info_regression(
-    #     data[["A"]], data["B"], n_neighbors=n_neighbors
+    #     data[["a"]], data["b"], n_neighbors=n_neighbors
     # )[0]
     # print(k_mutual_info_value)
     # print("\n", sklearn_k_mutual_info_value)
@@ -147,8 +147,8 @@ def test_rcot():
     independent_rcot = pbn.RCoT(
         independent_data, random_fourier_xy=5, random_fourier_z=100
     )
-    p_value = rcot.pvalue("A", "B")
-    independent_p_value = independent_rcot.pvalue("A", "B")
+    p_value = rcot.pvalue("a", "b")
+    independent_p_value = independent_rcot.pvalue("a", "b")
 
     # Check whether the p-values are below the significance level
     assert p_value < 0.05

@@ -11,11 +11,11 @@ df = generate_normal_data(1000)
 
 
 def test_create_dbn():
-    variables = ["A", "B", "C", "D"]
+    variables = ["a", "b", "c", "d"]
     gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     assert gbn.markovian_order() == 2
-    assert gbn.variables() == ["A", "B", "C", "D"]
+    assert gbn.variables() == ["a", "b", "c", "d"]
     assert gbn.num_variables() == 4
     assert gbn.type() == pbn.GaussianNetworkType()
 
@@ -31,7 +31,7 @@ def test_create_dbn():
 
     gbn2 = pbn.DynamicGaussianNetwork(variables, 2, static_bn, transition_bn)
     assert gbn2.markovian_order() == 2
-    assert gbn2.variables() == ["A", "B", "C", "D"]
+    assert gbn2.variables() == ["a", "b", "c", "d"]
     assert gbn2.num_variables() == 4
     assert gbn2.type() == pbn.GaussianNetworkType()
 
@@ -50,20 +50,20 @@ def test_create_dbn():
 
 
 def test_variable_operations_dbn():
-    variables = ["A", "B", "C", "D"]
+    variables = ["a", "b", "c", "d"]
     gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     assert gbn.markovian_order() == 2
-    assert gbn.variables() == ["A", "B", "C", "D"]
+    assert gbn.variables() == ["a", "b", "c", "d"]
     assert gbn.num_variables() == 4
 
-    assert gbn.contains_variable("A")
-    assert gbn.contains_variable("B")
-    assert gbn.contains_variable("C")
-    assert gbn.contains_variable("D")
+    assert gbn.contains_variable("a")
+    assert gbn.contains_variable("b")
+    assert gbn.contains_variable("c")
+    assert gbn.contains_variable("d")
 
     gbn.add_variable("E")
-    assert set(gbn.variables()) == set(["A", "B", "C", "D", "E"])
+    assert set(gbn.variables()) == set(["a", "b", "c", "d", "E"])
     assert gbn.num_variables() == 5
 
     assert set(gbn.static_bn().nodes()) == set(
@@ -73,19 +73,19 @@ def test_variable_operations_dbn():
         [v + "_t_0" for v in variables + ["E"]]
     )
 
-    gbn.remove_variable("B")
-    assert set(gbn.variables()) == set(["A", "C", "D", "E"])
+    gbn.remove_variable("b")
+    assert set(gbn.variables()) == set(["a", "c", "d", "E"])
     assert gbn.num_variables() == 4
     assert set(gbn.static_bn().nodes()) == set(
-        [v + "_t_" + str(m) for v in ["A", "C", "D", "E"] for m in range(1, 3)]
+        [v + "_t_" + str(m) for v in ["a", "c", "d", "E"] for m in range(1, 3)]
     )
     assert set(gbn.transition_bn().nodes()) == set(
-        [v + "_t_0" for v in ["A", "C", "D", "E"]]
+        [v + "_t_0" for v in ["a", "c", "d", "E"]]
     )
 
 
 def test_fit_dbn():
-    variables = ["A", "B", "C", "D"]
+    variables = ["a", "b", "c", "d"]
     gbn = pbn.DynamicGaussianNetwork(variables, 2)
     assert not gbn.fitted()
     assert not gbn.static_bn().fitted()
@@ -165,33 +165,33 @@ def numpy_logl(dbn, test_data):
 
 
 def test_logl_dbn():
-    variables = ["A", "B", "C", "D"]
+    variables = ["a", "b", "c", "d"]
 
     static_bn = pbn.GaussianNetwork(
-        ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
+        ["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")]
     )
     static_bn = pbn.GaussianNetwork(
-        ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
+        ["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")]
     )
     gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     static_bn = gbn.static_bn()
-    static_bn.add_arc("A_t_2", "C_t_2")
-    static_bn.add_arc("B_t_2", "C_t_2")
-    static_bn.add_arc("C_t_2", "D_t_2")
-    static_bn.add_arc("A_t_1", "C_t_1")
-    static_bn.add_arc("B_t_1", "C_t_1")
-    static_bn.add_arc("C_t_1", "D_t_1")
+    static_bn.add_arc("a_t_2", "c_t_2")
+    static_bn.add_arc("b_t_2", "c_t_2")
+    static_bn.add_arc("c_t_2", "d_t_2")
+    static_bn.add_arc("a_t_1", "c_t_1")
+    static_bn.add_arc("b_t_1", "c_t_1")
+    static_bn.add_arc("c_t_1", "d_t_1")
 
     transition_bn = gbn.transition_bn()
-    transition_bn.add_arc("A_t_2", "A_t_0")
-    transition_bn.add_arc("B_t_2", "B_t_0")
-    transition_bn.add_arc("C_t_2", "C_t_0")
-    transition_bn.add_arc("D_t_2", "D_t_0")
-    transition_bn.add_arc("A_t_1", "A_t_0")
-    transition_bn.add_arc("B_t_1", "B_t_0")
-    transition_bn.add_arc("C_t_1", "C_t_0")
-    transition_bn.add_arc("D_t_1", "D_t_0")
+    transition_bn.add_arc("a_t_2", "a_t_0")
+    transition_bn.add_arc("b_t_2", "b_t_0")
+    transition_bn.add_arc("c_t_2", "c_t_0")
+    transition_bn.add_arc("d_t_2", "d_t_0")
+    transition_bn.add_arc("a_t_1", "a_t_0")
+    transition_bn.add_arc("b_t_1", "b_t_0")
+    transition_bn.add_arc("c_t_1", "c_t_0")
+    transition_bn.add_arc("d_t_1", "d_t_0")
 
     gbn.fit(df)
 
@@ -202,33 +202,33 @@ def test_logl_dbn():
 
 
 def test_slogl_dbn():
-    variables = ["A", "B", "C", "D"]
+    variables = ["a", "b", "c", "d"]
 
     static_bn = pbn.GaussianNetwork(
-        ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
+        ["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")]
     )
     static_bn = pbn.GaussianNetwork(
-        ["A", "B", "C", "D"], [("A", "C"), ("B", "C"), ("C", "D")]
+        ["a", "b", "c", "d"], [("a", "c"), ("b", "c"), ("c", "d")]
     )
     gbn = pbn.DynamicGaussianNetwork(variables, 2)
 
     static_bn = gbn.static_bn()
-    static_bn.add_arc("A_t_2", "C_t_2")
-    static_bn.add_arc("B_t_2", "C_t_2")
-    static_bn.add_arc("C_t_2", "D_t_2")
-    static_bn.add_arc("A_t_1", "C_t_1")
-    static_bn.add_arc("B_t_1", "C_t_1")
-    static_bn.add_arc("C_t_1", "D_t_1")
+    static_bn.add_arc("a_t_2", "c_t_2")
+    static_bn.add_arc("b_t_2", "c_t_2")
+    static_bn.add_arc("c_t_2", "d_t_2")
+    static_bn.add_arc("a_t_1", "c_t_1")
+    static_bn.add_arc("b_t_1", "c_t_1")
+    static_bn.add_arc("c_t_1", "d_t_1")
 
     transition_bn = gbn.transition_bn()
-    transition_bn.add_arc("A_t_2", "A_t_0")
-    transition_bn.add_arc("B_t_2", "B_t_0")
-    transition_bn.add_arc("C_t_2", "C_t_0")
-    transition_bn.add_arc("D_t_2", "D_t_0")
-    transition_bn.add_arc("A_t_1", "A_t_0")
-    transition_bn.add_arc("B_t_1", "B_t_0")
-    transition_bn.add_arc("C_t_1", "C_t_0")
-    transition_bn.add_arc("D_t_1", "D_t_0")
+    transition_bn.add_arc("a_t_2", "a_t_0")
+    transition_bn.add_arc("b_t_2", "b_t_0")
+    transition_bn.add_arc("c_t_2", "c_t_0")
+    transition_bn.add_arc("d_t_2", "d_t_0")
+    transition_bn.add_arc("a_t_1", "a_t_0")
+    transition_bn.add_arc("b_t_1", "b_t_0")
+    transition_bn.add_arc("c_t_1", "c_t_0")
+    transition_bn.add_arc("d_t_1", "d_t_0")
 
     gbn.fit(df)
     test_df = generate_normal_data(100)

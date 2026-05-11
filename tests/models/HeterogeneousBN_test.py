@@ -8,16 +8,16 @@ def test_type_equality():
     #
 
     het_single = pbn.HeterogeneousBN(
-        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["A", "B", "C", "D"]
+        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["a", "b", "c", "d"]
     )
     het2_single = pbn.HeterogeneousBN(
-        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["A", "B", "C", "D"]
+        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["a", "b", "c", "d"]
     )
 
     assert het_single.type() == het2_single.type()
 
     het3_single = pbn.HeterogeneousBN(
-        [pbn.LinearGaussianCPDType(), pbn.CKDEType()], ["A", "B", "C", "D"]
+        [pbn.LinearGaussianCPDType(), pbn.CKDEType()], ["a", "b", "c", "d"]
     )
 
     assert het_single.type() != het3_single.type()
@@ -32,7 +32,7 @@ def test_type_equality():
             pa.float32(): [pbn.CKDEType(), pbn.LinearGaussianCPDType()],
             pa.dictionary(pa.int8(), pa.string()): [pbn.DiscreteFactorType()],
         },
-        ["A", "B", "C", "D"],
+        ["a", "b", "c", "d"],
     )
 
     het2_dt = pbn.HeterogeneousBN(
@@ -41,7 +41,7 @@ def test_type_equality():
             pa.float32(): [pbn.CKDEType(), pbn.LinearGaussianCPDType()],
             pa.float64(): [pbn.CKDEType(), pbn.LinearGaussianCPDType()],
         },
-        ["A", "B", "C", "D"],
+        ["a", "b", "c", "d"],
     )
 
     # The order of the set is not relevant
@@ -53,7 +53,7 @@ def test_type_equality():
             pa.float32(): [pbn.LinearGaussianCPDType(), pbn.CKDEType()],
             pa.float64(): [pbn.CKDEType(), pbn.LinearGaussianCPDType()],
         },
-        ["A", "B", "C", "D"],
+        ["a", "b", "c", "d"],
     )
 
     # The order of the default FactorTypes is relevant
@@ -63,11 +63,11 @@ def test_type_equality():
     # Compare single vector and multi vector FactorTypes
 
     het_single = pbn.HeterogeneousBN(
-        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["A", "B", "C", "D"]
+        [pbn.CKDEType(), pbn.LinearGaussianCPDType()], ["a", "b", "c", "d"]
     )
     het_dt = pbn.HeterogeneousBN(
         {pa.float64(): [pbn.CKDEType(), pbn.LinearGaussianCPDType()]},
-        ["A", "B", "C", "D"],
+        ["a", "b", "c", "d"],
     )
 
     assert het_single.type() != het_dt.type()

@@ -18,10 +18,10 @@ df_small_float = df_small.astype("float32")
 
 def test_variable():
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.CKDE(variable, evidence)
         assert cpd.variable() == variable
@@ -29,17 +29,17 @@ def test_variable():
 
 def test_evidence():
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.CKDE(variable, evidence)
         assert cpd.evidence() == evidence
 
 
 def test_kde_data_type():
-    k = pbn.CKDE("A", [])
+    k = pbn.CKDE("a", [])
 
     with pytest.raises(ValueError) as ex:
         k.data_type()
@@ -62,10 +62,10 @@ def test_ckde_kde_joint():
         ), "kde_joint do not return a reference to the KDE joint, but a copy."
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_kde_joint_iter(variable, evidence, df)
         _test_ckde_kde_joint_iter(variable, evidence, df_float)
@@ -88,10 +88,10 @@ def test_ckde_kde_marg():
             pass
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_kde_marg_iter(variable, evidence, df)
         _test_ckde_kde_marg_iter(variable, evidence, df_float)
@@ -123,10 +123,10 @@ def test_ckde_fit():
         assert cpd.num_instances() == instances
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         variables = [variable] + evidence
         for instances in [50, 1000, 10000]:
@@ -169,22 +169,22 @@ def test_ckde_fit_null():
     d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     df_null_float = df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         variables = [variable] + evidence
         for instances in [50, 1000, 10000]:
@@ -313,27 +313,27 @@ def test_ckde_logl():
     test_df_float = test_df.astype("float32")
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_logl(variable, evidence, df, test_df)
         _test_ckde_logl(variable, evidence, df_small, test_df)
         _test_ckde_logl(variable, evidence, df_float, test_df_float)
         _test_ckde_logl(variable, evidence, df_small_float, test_df_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.logl(test_df), cpd2.logl(test_df))
     ), "Order of evidence changes logl() result."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.logl(test_df_float), cpd2.logl(test_df_float), atol=0.0005)
@@ -367,31 +367,31 @@ def test_ckde_logl_null():
     d_null = np.random.randint(0, TEST_SIZE, size=10)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     df_null_float = test_df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_logl_null(variable, evidence, df, df_null)
         _test_ckde_logl_null(variable, evidence, df_small, df_null)
         _test_ckde_logl_null(variable, evidence, df_float, df_null_float)
         _test_ckde_logl_null(variable, evidence, df_small_float, df_null_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
 
     ll = cpd.logl(df_null)
@@ -400,9 +400,9 @@ def test_ckde_logl_null():
         np.isclose(ll, ll2, equal_nan=True)
     ), "Order of evidence changes the position of nan values."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
 
     ll = cpd.logl(df_null_float)
@@ -434,27 +434,27 @@ def test_ckde_slogl():
     test_df_float = test_df.astype("float32")
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_slogl(variable, evidence, df, test_df)
         _test_ckde_slogl(variable, evidence, df_small, test_df)
         _test_ckde_slogl(variable, evidence, df_float, test_df_float)
         _test_ckde_slogl(variable, evidence, df_small_float, test_df_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.slogl(test_df), cpd2.slogl(test_df))
     ), "Order of evidence changes slogl() result."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.slogl(test_df_float), cpd2.slogl(test_df_float))
@@ -489,39 +489,39 @@ def test_ckde_slogl_null():
     d_null = np.random.randint(0, TEST_SIZE, size=10)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     df_null_float = test_df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_slogl_null(variable, evidence, df, df_null)
         _test_ckde_slogl_null(variable, evidence, df_small, df_null)
         _test_ckde_slogl_null(variable, evidence, df_float, df_null_float)
         _test_ckde_slogl_null(variable, evidence, df_small_float, df_null_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.slogl(df_null), cpd2.slogl(df_null))
     ), "Order of evidence changes slogl() result."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.slogl(df_null_float), cpd2.slogl(df_null_float))
@@ -548,27 +548,27 @@ def test_ckde_cdf():
     test_df_float = test_df.astype("float32")
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_cdf(variable, evidence, df, test_df)
         _test_ckde_cdf(variable, evidence, df_small, test_df)
         _test_ckde_cdf(variable, evidence, df_float, test_df_float)
         _test_ckde_cdf(variable, evidence, df_small_float, test_df_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.cdf(test_df), cpd2.cdf(test_df))
     ), "Order of evidence changes logl() result."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(cpd.cdf(test_df_float), cpd2.cdf(test_df_float), atol=0.0005)
@@ -602,39 +602,39 @@ def test_ckde_cdf_null():
     d_null = np.random.randint(0, TEST_SIZE, size=10)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     df_null_float = test_df_float.copy()
-    df_null_float.loc[df_null_float.index[a_null], "A"] = np.nan
-    df_null_float.loc[df_null_float.index[b_null], "B"] = np.nan
-    df_null_float.loc[df_null_float.index[c_null], "C"] = np.nan
-    df_null_float.loc[df_null_float.index[d_null], "D"] = np.nan
+    df_null_float.loc[df_null_float.index[a_null], "a"] = np.nan
+    df_null_float.loc[df_null_float.index[b_null], "b"] = np.nan
+    df_null_float.loc[df_null_float.index[c_null], "c"] = np.nan
+    df_null_float.loc[df_null_float.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         _test_ckde_cdf_null(variable, evidence, df, df_null)
         _test_ckde_cdf_null(variable, evidence, df_small, df_null)
         _test_ckde_cdf_null(variable, evidence, df_float, df_null_float)
         _test_ckde_cdf_null(variable, evidence, df_small_float, df_null_float)
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df)
     assert np.all(
         np.isclose(cpd.cdf(df_null), cpd2.cdf(df_null), equal_nan=True)
     ), "Order of evidence changes cdf() result."
 
-    cpd = pbn.CKDE("D", ["A", "B", "C"])
+    cpd = pbn.CKDE("d", ["a", "b", "c"])
     cpd.fit(df_float)
-    cpd2 = pbn.CKDE("D", ["C", "B", "A"])
+    cpd2 = pbn.CKDE("d", ["c", "b", "a"])
     cpd2.fit(df_float)
     assert np.all(
         np.isclose(
@@ -646,7 +646,7 @@ def test_ckde_cdf_null():
 def test_ckde_sample():
     SAMPLE_SIZE = 1000
 
-    cpd = pbn.CKDE("A", [])
+    cpd = pbn.CKDE("a", [])
     cpd.fit(df)
 
     sampled = cpd.sample(SAMPLE_SIZE, None, 0)
@@ -654,27 +654,27 @@ def test_ckde_sample():
     assert sampled.type == pa.float64()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.CKDE("B", ["A"])
+    cpd = pbn.CKDE("b", ["a"])
     cpd.fit(df)
 
-    sampling_df = pd.DataFrame({"A": np.full((SAMPLE_SIZE,), 3.0)})
+    sampling_df = pd.DataFrame({"a": np.full((SAMPLE_SIZE,), 3.0)})
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)
 
     assert sampled.type == pa.float64()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.CKDE("C", ["A", "B"])
+    cpd = pbn.CKDE("c", ["a", "b"])
     cpd.fit(df)
 
     sampling_df = pd.DataFrame(
-        {"A": np.full((SAMPLE_SIZE,), 3.0), "B": np.full((SAMPLE_SIZE,), 7.45)}
+        {"a": np.full((SAMPLE_SIZE,), 3.0), "b": np.full((SAMPLE_SIZE,), 7.45)}
     )
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)
 
     assert sampled.type == pa.float64()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.CKDE("A", [])
+    cpd = pbn.CKDE("a", [])
     cpd.fit(df_float)
 
     sampled = cpd.sample(SAMPLE_SIZE, None, 0)
@@ -682,22 +682,22 @@ def test_ckde_sample():
     assert sampled.type == pa.float32()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.CKDE("B", ["A"])
+    cpd = pbn.CKDE("b", ["a"])
     cpd.fit(df_float)
 
-    sampling_df = pd.DataFrame({"A": np.full((SAMPLE_SIZE,), 3.0, dtype=np.float32)})
+    sampling_df = pd.DataFrame({"a": np.full((SAMPLE_SIZE,), 3.0, dtype=np.float32)})
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)
 
     assert sampled.type == pa.float32()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.CKDE("C", ["A", "B"])
+    cpd = pbn.CKDE("c", ["a", "b"])
     cpd.fit(df_float)
 
     sampling_df = pd.DataFrame(
         {
-            "A": np.full((SAMPLE_SIZE,), 3.0, dtype=np.float32),
-            "B": np.full((SAMPLE_SIZE,), 7.45, dtype=np.float32),
+            "a": np.full((SAMPLE_SIZE,), 3.0, dtype=np.float32),
+            "b": np.full((SAMPLE_SIZE,), 7.45, dtype=np.float32),
         }
     )
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)

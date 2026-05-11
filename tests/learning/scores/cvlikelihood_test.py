@@ -28,7 +28,7 @@ def numpy_local_score(
             N = variable_data.shape[0]
             d = evidence_data.shape[1]
             linregress_data = np.column_stack((np.ones(N), evidence_data.to_numpy()))
-            (beta, res, _, _) = np.linalg.lstsq(
+            beta, res, _, _ = np.linalg.lstsq(
                 linregress_data, variable_data.to_numpy(), rcond=None
             )
             var = res / (N - d - 1)
@@ -82,41 +82,41 @@ def test_cvl_create():
 
 def test_cvl_local_score_gbn():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     cvl = pbn.CVLikelihood(df, 10, seed)
 
     assert np.isclose(
-        cvl.local_score(gbn, "A", []),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "A", []),
+        cvl.local_score(gbn, "a", []),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "a", []),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "B", ["A"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "B", ["A"]),
+        cvl.local_score(gbn, "b", ["a"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "C", ["A", "B"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "C", ["A", "B"]),
+        cvl.local_score(gbn, "c", ["a", "b"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "D", ["A", "B", "C"]),
+        cvl.local_score(gbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "D", ["A", "B", "C"]),
-        cvl.local_score(gbn, "D", ["B", "C", "A"]),
+        cvl.local_score(gbn, "d", ["a", "b", "c"]),
+        cvl.local_score(gbn, "d", ["b", "c", "a"]),
     )
 
-    assert cvl.local_score(gbn, "A") == cvl.local_score(gbn, "A", gbn.parents("A"))
-    assert cvl.local_score(gbn, "B") == cvl.local_score(gbn, "B", gbn.parents("B"))
-    assert cvl.local_score(gbn, "C") == cvl.local_score(gbn, "C", gbn.parents("C"))
-    assert cvl.local_score(gbn, "D") == cvl.local_score(gbn, "D", gbn.parents("D"))
+    assert cvl.local_score(gbn, "a") == cvl.local_score(gbn, "a", gbn.parents("a"))
+    assert cvl.local_score(gbn, "b") == cvl.local_score(gbn, "b", gbn.parents("b"))
+    assert cvl.local_score(gbn, "c") == cvl.local_score(gbn, "c", gbn.parents("c"))
+    assert cvl.local_score(gbn, "d") == cvl.local_score(gbn, "d", gbn.parents("d"))
 
 
 def test_cvl_local_score_gbn_null():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     np.random.seed(0)
@@ -126,99 +126,99 @@ def test_cvl_local_score_gbn_null():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     cvl = pbn.CVLikelihood(df_null, 10, seed)
 
     assert np.isclose(
-        cvl.local_score(gbn, "A", []),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "A", []),
+        cvl.local_score(gbn, "a", []),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "a", []),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "B", ["A"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "B", ["A"]),
+        cvl.local_score(gbn, "b", ["a"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "C", ["A", "B"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "C", ["A", "B"]),
+        cvl.local_score(gbn, "c", ["a", "b"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "D", ["A", "B", "C"]),
+        cvl.local_score(gbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score(gbn, "D", ["A", "B", "C"]),
-        cvl.local_score(gbn, "D", ["B", "C", "A"]),
+        cvl.local_score(gbn, "d", ["a", "b", "c"]),
+        cvl.local_score(gbn, "d", ["b", "c", "a"]),
     )
 
-    assert cvl.local_score(gbn, "A") == cvl.local_score(gbn, "A", gbn.parents("A"))
-    assert cvl.local_score(gbn, "B") == cvl.local_score(gbn, "B", gbn.parents("B"))
-    assert cvl.local_score(gbn, "C") == cvl.local_score(gbn, "C", gbn.parents("C"))
-    assert cvl.local_score(gbn, "D") == cvl.local_score(gbn, "D", gbn.parents("D"))
+    assert cvl.local_score(gbn, "a") == cvl.local_score(gbn, "a", gbn.parents("a"))
+    assert cvl.local_score(gbn, "b") == cvl.local_score(gbn, "b", gbn.parents("b"))
+    assert cvl.local_score(gbn, "c") == cvl.local_score(gbn, "c", gbn.parents("c"))
+    assert cvl.local_score(gbn, "d") == cvl.local_score(gbn, "d", gbn.parents("d"))
 
 
 def test_cvl_local_score_spbn():
     spbn = pbn.SemiparametricBN(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
-        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
+        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
     )
 
     cvl = pbn.CVLikelihood(df, 10, seed)
 
     assert np.isclose(
-        cvl.local_score(spbn, "A", []), numpy_local_score(pbn.CKDEType(), df, "A", [])
+        cvl.local_score(spbn, "a", []), numpy_local_score(pbn.CKDEType(), df, "a", [])
     )
     assert np.isclose(
-        cvl.local_score(spbn, "B", ["A"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "B", ["A"]),
+        cvl.local_score(spbn, "b", ["a"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "C", ["A", "B"]),
-        numpy_local_score(pbn.CKDEType(), df, "C", ["A", "B"]),
+        cvl.local_score(spbn, "c", ["a", "b"]),
+        numpy_local_score(pbn.CKDEType(), df, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "D", ["A", "B", "C"]),
+        cvl.local_score(spbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "D", ["B", "C", "A"]),
+        cvl.local_score(spbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "d", ["b", "c", "a"]),
     )
 
-    assert cvl.local_score(spbn, "A") == cvl.local_score(spbn, "A", spbn.parents("A"))
-    assert cvl.local_score(spbn, "B") == cvl.local_score(spbn, "B", spbn.parents("B"))
-    assert cvl.local_score(spbn, "C") == cvl.local_score(spbn, "C", spbn.parents("C"))
-    assert cvl.local_score(spbn, "D") == cvl.local_score(spbn, "D", spbn.parents("D"))
+    assert cvl.local_score(spbn, "a") == cvl.local_score(spbn, "a", spbn.parents("a"))
+    assert cvl.local_score(spbn, "b") == cvl.local_score(spbn, "b", spbn.parents("b"))
+    assert cvl.local_score(spbn, "c") == cvl.local_score(spbn, "c", spbn.parents("c"))
+    assert cvl.local_score(spbn, "d") == cvl.local_score(spbn, "d", spbn.parents("d"))
 
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "A", []),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "A", []),
+        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "a", []),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "a", []),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "B", ["A"]),
-        numpy_local_score(pbn.CKDEType(), df, "B", ["A"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "b", ["a"]),
+        numpy_local_score(pbn.CKDEType(), df, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "C", ["A", "B"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df, "C", ["A", "B"]),
+        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "c", ["a", "b"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.CKDEType(), df, "D", ["A", "B", "C"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.CKDEType(), df, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.CKDEType(), df, "D", ["B", "C", "A"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.CKDEType(), df, "d", ["b", "c", "a"]),
     )
 
 
 def test_cvl_local_score_null_spbn():
     spbn = pbn.SemiparametricBN(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
-        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
+        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
     )
 
     np.random.seed(0)
@@ -228,64 +228,64 @@ def test_cvl_local_score_null_spbn():
     d_null = np.random.randint(0, SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     cvl = pbn.CVLikelihood(df_null, 10, seed)
 
     assert np.isclose(
-        cvl.local_score(spbn, "A", []),
-        numpy_local_score(pbn.CKDEType(), df_null, "A", []),
+        cvl.local_score(spbn, "a", []),
+        numpy_local_score(pbn.CKDEType(), df_null, "a", []),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "B", ["A"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "B", ["A"]),
+        cvl.local_score(spbn, "b", ["a"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "C", ["A", "B"]),
-        numpy_local_score(pbn.CKDEType(), df_null, "C", ["A", "B"]),
+        cvl.local_score(spbn, "c", ["a", "b"]),
+        numpy_local_score(pbn.CKDEType(), df_null, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "D", ["A", "B", "C"]),
+        cvl.local_score(spbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score(spbn, "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "D", ["B", "C", "A"]),
+        cvl.local_score(spbn, "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "d", ["b", "c", "a"]),
     )
 
-    assert cvl.local_score(spbn, "A") == cvl.local_score(spbn, "A", spbn.parents("A"))
-    assert cvl.local_score(spbn, "B") == cvl.local_score(spbn, "B", spbn.parents("B"))
-    assert cvl.local_score(spbn, "C") == cvl.local_score(spbn, "C", spbn.parents("C"))
-    assert cvl.local_score(spbn, "D") == cvl.local_score(spbn, "D", spbn.parents("D"))
+    assert cvl.local_score(spbn, "a") == cvl.local_score(spbn, "a", spbn.parents("a"))
+    assert cvl.local_score(spbn, "b") == cvl.local_score(spbn, "b", spbn.parents("b"))
+    assert cvl.local_score(spbn, "c") == cvl.local_score(spbn, "c", spbn.parents("c"))
+    assert cvl.local_score(spbn, "d") == cvl.local_score(spbn, "d", spbn.parents("d"))
 
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "A", []),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "A", []),
+        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "a", []),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "a", []),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "B", ["A"]),
-        numpy_local_score(pbn.CKDEType(), df_null, "B", ["A"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "b", ["a"]),
+        numpy_local_score(pbn.CKDEType(), df_null, "b", ["a"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "C", ["A", "B"]),
-        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "C", ["A", "B"]),
+        cvl.local_score_node_type(spbn, pbn.LinearGaussianCPDType(), "c", ["a", "b"]),
+        numpy_local_score(pbn.LinearGaussianCPDType(), df_null, "c", ["a", "b"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.CKDEType(), df_null, "D", ["A", "B", "C"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.CKDEType(), df_null, "d", ["a", "b", "c"]),
     )
     assert np.isclose(
-        cvl.local_score_node_type(spbn, pbn.CKDEType(), "D", ["A", "B", "C"]),
-        numpy_local_score(pbn.CKDEType(), df_null, "D", ["B", "C", "A"]),
+        cvl.local_score_node_type(spbn, pbn.CKDEType(), "d", ["a", "b", "c"]),
+        numpy_local_score(pbn.CKDEType(), df_null, "d", ["b", "c", "a"]),
     )
 
 
 def test_cvl_score():
     gbn = pbn.GaussianNetwork(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")]
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")]
     )
 
     cv = pbn.CVLikelihood(df, 10, 0)
@@ -293,24 +293,24 @@ def test_cvl_score():
     assert np.isclose(
         cv.score(gbn),
         (
-            cv.local_score(gbn, "A", [])
-            + cv.local_score(gbn, "B", ["A"])
-            + cv.local_score(gbn, "C", ["A", "B"])
-            + cv.local_score(gbn, "D", ["A", "B", "C"])
+            cv.local_score(gbn, "a", [])
+            + cv.local_score(gbn, "b", ["a"])
+            + cv.local_score(gbn, "c", ["a", "b"])
+            + cv.local_score(gbn, "d", ["a", "b", "c"])
         ),
     )
 
     spbn = pbn.SemiparametricBN(
-        [("A", "B"), ("A", "C"), ("A", "D"), ("B", "C"), ("B", "D"), ("C", "D")],
-        [("A", pbn.CKDEType()), ("C", pbn.CKDEType())],
+        [("a", "b"), ("a", "c"), ("a", "d"), ("b", "c"), ("b", "d"), ("c", "d")],
+        [("a", pbn.CKDEType()), ("c", pbn.CKDEType())],
     )
 
     assert np.isclose(
         cv.score(spbn),
         (
-            cv.local_score(spbn, "A")
-            + cv.local_score(spbn, "B")
-            + cv.local_score(spbn, "C")
-            + cv.local_score(spbn, "D")
+            cv.local_score(spbn, "a")
+            + cv.local_score(spbn, "b")
+            + cv.local_score(spbn, "c")
+            + cv.local_score(spbn, "d")
         ),
     )

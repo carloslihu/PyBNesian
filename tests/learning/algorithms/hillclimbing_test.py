@@ -20,7 +20,7 @@ class MyRestrictedGaussianNetworkType(pbn.BayesianNetworkType):
         return pbn.LinearGaussianCPDType()
 
     def can_have_arc(self, model, source, target):
-        return "A" in source
+        return "a" in source
 
     def new_bn(self, nodes):
         return NewBN(nodes)
@@ -251,7 +251,7 @@ def test_hc_shortcut_function():
 
 
 def test_newbn_estimate_validation():
-    start = NewBN(["A", "B", "C", "D"])
+    start = NewBN(["a", "b", "c", "d"])
     hc = pbn.GreedyHillClimbing()
     arc = pbn.ArcOperatorSet()
     bic = pbn.BIC(df)

@@ -10,10 +10,10 @@ df = generate_normal_data(DATA_SIZE)
 
 def test_lg_variable():
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         assert cpd.variable() == variable
@@ -21,10 +21,10 @@ def test_lg_variable():
 
 def test_lg_evidence():
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         assert cpd.evidence() == evidence
@@ -33,7 +33,7 @@ def test_lg_evidence():
 def fit_numpy(_df, variable, evidence):
     df_na = _df.loc[:, [variable] + evidence].dropna()
     linregress_data = np.column_stack((np.ones(df_na.shape[0]), df_na.loc[:, evidence]))
-    (beta, res, _, _) = np.linalg.lstsq(
+    beta, res, _, _ = np.linalg.lstsq(
         linregress_data, df_na.loc[:, variable], rcond=None
     )
 
@@ -41,16 +41,16 @@ def fit_numpy(_df, variable, evidence):
 
 
 def test_lg_data_type():
-    cpd = pbn.LinearGaussianCPD("A", [])
+    cpd = pbn.LinearGaussianCPD("a", [])
     assert cpd.data_type() == pa.float64()
 
 
 def test_lg_fit():
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         assert not cpd.fitted()
@@ -71,16 +71,16 @@ def test_lg_fit_null():
     d_null = np.random.randint(0, DATA_SIZE, size=100)
 
     df_null = df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         assert not cpd.fitted()
@@ -135,10 +135,10 @@ def test_lg_logl():
     test_df = generate_normal_data(5000)
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -159,9 +159,9 @@ def test_lg_logl():
             + ")"
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -179,16 +179,16 @@ def test_lg_logl_null():
     d_null = np.random.randint(0, 5000, size=100)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -210,9 +210,9 @@ def test_lg_logl_null():
             + ") with null values."
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -224,10 +224,10 @@ def test_lg_slogl():
     test_df = generate_normal_data(5000)
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -248,9 +248,9 @@ def test_lg_slogl():
             + ")"
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -268,16 +268,16 @@ def test_lg_slogl_null():
     d_null = np.random.randint(0, 5000, size=100)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -298,9 +298,9 @@ def test_lg_slogl_null():
             + ") with null values."
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -312,10 +312,10 @@ def test_lg_cdf():
     test_df = generate_normal_data(5000)
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -335,9 +335,9 @@ def test_lg_cdf():
             + ")"
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -355,16 +355,16 @@ def test_lg_cdf_null():
     d_null = np.random.randint(0, 5000, size=100)
 
     df_null = test_df.copy()
-    df_null.loc[df_null.index[a_null], "A"] = np.nan
-    df_null.loc[df_null.index[b_null], "B"] = np.nan
-    df_null.loc[df_null.index[c_null], "C"] = np.nan
-    df_null.loc[df_null.index[d_null], "D"] = np.nan
+    df_null.loc[df_null.index[a_null], "a"] = np.nan
+    df_null.loc[df_null.index[b_null], "b"] = np.nan
+    df_null.loc[df_null.index[c_null], "c"] = np.nan
+    df_null.loc[df_null.index[d_null], "d"] = np.nan
 
     for variable, evidence in [
-        ("A", []),
-        ("B", ["A"]),
-        ("C", ["A", "B"]),
-        ("D", ["A", "B", "C"]),
+        ("a", []),
+        ("b", ["a"]),
+        ("c", ["a", "b"]),
+        ("d", ["a", "b", "c"]),
     ]:
         cpd = pbn.LinearGaussianCPD(variable, evidence)
         cpd.fit(df)
@@ -386,9 +386,9 @@ def test_lg_cdf_null():
             + ") with null values."
         )
 
-    cpd = pbn.LinearGaussianCPD("D", ["A", "B", "C"])
+    cpd = pbn.LinearGaussianCPD("d", ["a", "b", "c"])
     cpd.fit(df)
-    cpd2 = pbn.LinearGaussianCPD("D", ["C", "A", "B"])
+    cpd2 = pbn.LinearGaussianCPD("d", ["c", "a", "b"])
     cpd2.fit(df)
 
     assert np.all(
@@ -399,7 +399,7 @@ def test_lg_cdf_null():
 def test_lg_sample():
     SAMPLE_SIZE = 1000
 
-    cpd = pbn.LinearGaussianCPD("A", [])
+    cpd = pbn.LinearGaussianCPD("a", [])
     cpd.fit(df)
 
     sampled = cpd.sample(SAMPLE_SIZE, None, 0)
@@ -407,20 +407,20 @@ def test_lg_sample():
     assert sampled.type == pa.float64()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.LinearGaussianCPD("B", ["A"])
+    cpd = pbn.LinearGaussianCPD("b", ["a"])
     cpd.fit(df)
 
-    sampling_df = pd.DataFrame({"A": np.full((SAMPLE_SIZE,), 3.0)})
+    sampling_df = pd.DataFrame({"a": np.full((SAMPLE_SIZE,), 3.0)})
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)
 
     assert sampled.type == pa.float64()
     assert int(sampled.nbytes / (sampled.type.bit_width / 8)) == SAMPLE_SIZE
 
-    cpd = pbn.LinearGaussianCPD("C", ["A", "B"])
+    cpd = pbn.LinearGaussianCPD("c", ["a", "b"])
     cpd.fit(df)
 
     sampling_df = pd.DataFrame(
-        {"A": np.full((SAMPLE_SIZE,), 3.0), "B": np.full((SAMPLE_SIZE,), 7.45)}
+        {"a": np.full((SAMPLE_SIZE,), 3.0), "b": np.full((SAMPLE_SIZE,), 7.45)}
     )
     sampled = cpd.sample(SAMPLE_SIZE, sampling_df, 0)
 

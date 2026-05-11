@@ -1,14 +1,20 @@
+# BUG: If this file and the data in pybnesian are not aligned, this does not work, I think its because of the path.append
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
+TRUE_CLASS_LABEL = "class_label"
+
 # Constants
-TRUE_CLASS_LABEL = "attack_label"
-SUPER_PARENT = "A"
+
+SUPER_PARENT = "a"
 DATA_SIZE = 10000
 SAMPLE_SIZE = 100
 
 N_NEIGHBORS = 3
 SEED = 0
+BN_SAVE_FOLDER_PATH = Path(__file__).parent / "models"
 
 
 def generate_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:
@@ -40,7 +46,7 @@ def generate_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:
         + 0.3 * c_array
         + np.random.normal(0, 0.5, size=size)
     )
-    df = pd.DataFrame({"A": a_array, "B": b_array, "C": c_array, "D": d_array})
+    df = pd.DataFrame({"a": a_array, "b": b_array, "c": c_array, "d": d_array})
 
     return df
 
@@ -67,7 +73,7 @@ def generate_normal_data_independent(size: int, seed: int = SEED) -> pd.DataFram
     c_array = np.random.normal(-4.2, 0.75, size=size)
     d_array = np.random.normal(1.5, 0.5, size=size)
 
-    df = pd.DataFrame({"A": a_array, "B": b_array, "C": c_array, "D": d_array})
+    df = pd.DataFrame({"a": a_array, "b": b_array, "c": c_array, "d": d_array})
     return df
 
 
@@ -103,10 +109,10 @@ def generate_non_normal_data(size: int, seed: int = SEED) -> pd.DataFrame:
     # DataFrame
     df = pd.DataFrame(
         {
-            "A": a_values,
-            "B": b_values,
-            "C": c_values,
-            "D": d_values,
+            "a": a_values,
+            "b": b_values,
+            "c": c_values,
+            "d": d_values,
         }
     )
     return df
@@ -179,10 +185,10 @@ def generate_discrete_data(size: int, seed: int = SEED) -> pd.DataFrame:
     # DataFrame
     df = pd.DataFrame(
         {
-            "A": pd.Series(a_values, dtype="category"),
-            "B": pd.Series(b_values, dtype="category"),
-            "C": pd.Series(c_values, dtype="category"),
-            "D": pd.Series(d_values, dtype="category"),
+            "a": pd.Series(a_values, dtype="category"),
+            "b": pd.Series(b_values, dtype="category"),
+            "c": pd.Series(c_values, dtype="category"),
+            "d": pd.Series(d_values, dtype="category"),
         }
     )
     return df
@@ -214,10 +220,10 @@ def generate_discrete_data_independent(size: int, seed: int = SEED) -> pd.DataFr
     # DataFrame
     df = pd.DataFrame(
         {
-            "A": a_dict[np.random.randint(0, a_dict.size, size=size)],
-            "B": b_dict[np.random.randint(0, b_dict.size, size=size)],
-            "C": c_dict[np.random.randint(0, c_dict.size, size=size)],
-            "D": d_dict[np.random.randint(0, d_dict.size, size=size)],
+            "a": a_dict[np.random.randint(0, a_dict.size, size=size)],
+            "b": b_dict[np.random.randint(0, b_dict.size, size=size)],
+            "c": c_dict[np.random.randint(0, c_dict.size, size=size)],
+            "d": d_dict[np.random.randint(0, d_dict.size, size=size)],
         },
         dtype="category",
     )
@@ -284,10 +290,10 @@ def generate_hybrid_data(size: int, seed: int = SEED) -> pd.DataFrame:
     # DataFrame
     df = pd.DataFrame(
         {
-            "A": pd.Series(a_values, dtype="category"),
-            "B": pd.Series(b_values, dtype="category"),
-            "C": c_values,
-            "D": d_values,
+            "a": pd.Series(a_values, dtype="category"),
+            "b": pd.Series(b_values, dtype="category"),
+            "c": c_values,
+            "d": d_values,
         }
     )
     return df
@@ -437,9 +443,9 @@ def generate_discrete_data_classification(size: int, seed: int = SEED) -> pd.Dat
     df = pd.DataFrame(
         {
             TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
-            "A": pd.Series(a_values, dtype="category"),
-            "B": pd.Series(b_values, dtype="category"),
-            "C": pd.Series(c_values, dtype="category"),
+            "a": pd.Series(a_values, dtype="category"),
+            "b": pd.Series(b_values, dtype="category"),
+            "c": pd.Series(c_values, dtype="category"),
         }
     )
     return df
@@ -503,9 +509,9 @@ def generate_normal_data_classification(size: int, seed: int = SEED) -> pd.DataF
     df = pd.DataFrame(
         {
             TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
-            "A": a_values,
-            "B": b_values,
-            "C": c_values,
+            "a": a_values,
+            "b": b_values,
+            "c": c_values,
         }
     )
     return df
@@ -568,9 +574,9 @@ def generate_non_normal_data_classification(
     df = pd.DataFrame(
         {
             TRUE_CLASS_LABEL: pd.Series(class_values, dtype="category"),
-            "A": a_values,
-            "B": b_values,
-            "C": c_values,
+            "a": a_values,
+            "b": b_values,
+            "c": c_values,
         }
     )
     return df

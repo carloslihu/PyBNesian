@@ -18,7 +18,7 @@ def test_create():
 
 
 def test_find_max():
-    spbn = pbn.SemiparametricBN(["A", "B", "C", "D"])
+    spbn = pbn.SemiparametricBN(["a", "b", "c", "d"])
     cv = pbn.CVLikelihood(df)
     arcs = pbn.ArcOperatorSet()
     node_type = pbn.ChangeNodeTypeSet()

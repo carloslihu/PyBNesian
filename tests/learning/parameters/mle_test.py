@@ -19,7 +19,7 @@ def numpy_fit_mle_lg(data, variable, evidence):
     N = variable_data.shape[0]
     d = evidence_data.shape[1]
     linregress_data = np.column_stack((np.ones(N), evidence_data.to_numpy()))
-    (beta, res, _, _) = np.linalg.lstsq(
+    beta, res, _, _ = np.linalg.lstsq(
         linregress_data, variable_data.to_numpy(), rcond=None
     )
     var = res / (N - d - 1)
@@ -39,22 +39,22 @@ def test_mle_create():
 def test_mle_lg():
     mle = pbn.MLE(pbn.LinearGaussianCPDType())
 
-    p = mle.estimate(df, "A", [])
-    np_beta, np_var = numpy_fit_mle_lg(df, "A", [])
+    p = mle.estimate(df, "a", [])
+    np_beta, np_var = numpy_fit_mle_lg(df, "a", [])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "B", ["A"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "B", ["A"])
+    p = mle.estimate(df, "b", ["a"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "b", ["a"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "C", ["A", "B"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "C", ["A", "B"])
+    p = mle.estimate(df, "c", ["a", "b"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "c", ["a", "b"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
 
-    p = mle.estimate(df, "D", ["A", "B", "C"])
-    np_beta, np_var = numpy_fit_mle_lg(df, "D", ["A", "B", "C"])
+    p = mle.estimate(df, "d", ["a", "b", "c"])
+    np_beta, np_var = numpy_fit_mle_lg(df, "d", ["a", "b", "c"])
     assert np.all(np.isclose(p.beta, np_beta))
     assert np.isclose(p.variance, np_var)
