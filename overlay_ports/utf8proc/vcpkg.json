@@ -1,0 +1,17 @@
+{
+    "name": "utf8proc",
+    "version": "2.9.0",
+    "description": "UTF-8 processing library",
+    "homepage": "https://github.com/JuliaStrings/utf8proc",
+    "license": "MIT",
+    "dependencies": [
+        {
+            "name": "vcpkg-cmake",
+            "host": true
+        },
+        {
+            "name": "vcpkg-cmake-config",
+            "host": true
+        }
+    ]
+}
