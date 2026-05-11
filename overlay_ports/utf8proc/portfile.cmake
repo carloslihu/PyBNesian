@@ -5,39 +5,23 @@ vcpkg_from_github(
     SHA512 41030ba99084d3941bb774d186712b9149e33606e8fda5be10dc83e3237df801998f46f0d49555f224e30609660e5e2d0ac9e9f22d76b95ed92daeaa3eacbd7e
 )
 
-vcpkg_replace_string(
-    "${SOURCE_PATH}/CMakeLists.txt"
-    [[target_include_directories(utf8proc PUBLIC .)]]
-    [[target_include_directories(utf8proc PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)]]
-)
+file(READ "${SOURCE_PATH}/CMakeLists.txt" CMAKELISTS_CONTENT)
 
-vcpkg_replace_string(
-    "${SOURCE_PATH}/CMakeLists.txt"
-    [[if (UTF8PROC_INSTALL)
-  include(GNUInstallDirs)
-  install(FILES utf8proc.h DESTINATION "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
-  install(TARGETS utf8proc
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_FULL_BINDIR}"
-  )
-  configure_file(libutf8proc.pc.cmakein libutf8proc.pc @ONLY)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libutf8proc.pc" DESTINATION "${CMAKE_INSTALL_FULL_LIBDIR}/pkgconfig")
-endif()]]
-    [[if (UTF8PROC_INSTALL)
-  include(GNUInstallDirs)
-  install(FILES utf8proc.h DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-  install(TARGETS utf8proc
-    EXPORT unofficial-utf8proc-config
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-  )
-  install(EXPORT unofficial-utf8proc-config DESTINATION share/unofficial-utf8proc)
-  configure_file(libutf8proc.pc.cmakein libutf8proc.pc @ONLY)
-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libutf8proc.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-endif()]]
-)
+# Fix absolute include paths
+string(REPLACE "target_include_directories(utf8proc PUBLIC .)" "target_include_directories(utf8proc PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:include>)" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+
+# Fix absolute install paths: replace CMAKE_INSTALL_FULL_* with CMAKE_INSTALL_*
+string(REPLACE "\${CMAKE_INSTALL_FULL_INCLUDEDIR}" "\${CMAKE_INSTALL_INCLUDEDIR}" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+string(REPLACE "\${CMAKE_INSTALL_FULL_LIBDIR}" "\${CMAKE_INSTALL_LIBDIR}" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+string(REPLACE "\${CMAKE_INSTALL_FULL_BINDIR}" "\${CMAKE_INSTALL_BINDIR}" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+
+# Add export target to install rules
+string(REPLACE "install(TARGETS utf8proc" "install(TARGETS utf8proc EXPORT unofficial-utf8proc-config" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+
+# Add export config installation
+string(REPLACE "install(FILES \"\${CMAKE_CURRENT_BINARY_DIR}/libutf8proc.pc\" DESTINATION \"\${CMAKE_INSTALL_LIBDIR}/pkgconfig\")" "install(FILES \"\${CMAKE_CURRENT_BINARY_DIR}/libutf8proc.pc\" DESTINATION \"\${CMAKE_INSTALL_LIBDIR}/pkgconfig\")\n  install(EXPORT unofficial-utf8proc-config DESTINATION share/unofficial-utf8proc)" CMAKELISTS_CONTENT "${CMAKELISTS_CONTENT}")
+
+file(WRITE "${SOURCE_PATH}/CMakeLists.txt" "${CMAKELISTS_CONTENT}")
 
 vcpkg_cmake_configure(
     SOURCE_PATH ${SOURCE_PATH}
