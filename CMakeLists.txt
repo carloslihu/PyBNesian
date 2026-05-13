@@ -28,7 +28,7 @@ find_package(Git REQUIRED)
 message("Git executable: ${GIT_EXECUTABLE}")
 
 if(EXISTS ".git")
-    set(GIT_COMMAND_EXECUTED "{GIT_EXECUTABLE} submodule update --init --recursive")
+    set(GIT_COMMAND_EXECUTED "${GIT_EXECUTABLE} submodule update --init --recursive")
     execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} RESULT_VARIABLE GIT_SUBMOD_RESULT)
 
