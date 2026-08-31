@@ -35,7 +35,7 @@ def diagonal_kernel_logpdf_matrix(
 
     d = training_values.shape[1]
     diff = test_values[:, None, :] - training_values[None, :, :]
-    log_kernel = -0.5 * np.sum((diff**2) / bandwidth, axis=2)
+    log_kernel = -0.5 * np.sum((diff * diff) / bandwidth, axis=2)
     log_kernel -= 0.5 * np.log(bandwidth).sum()
     log_kernel -= 0.5 * d * np.log(2 * np.pi)
     return log_kernel
